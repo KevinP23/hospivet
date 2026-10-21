@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: hospivet-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/hospivet}
+    username: ${DB_USERNAME:hospivet}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.boot.autoconfigure: INFO
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+
+hospivet:
+  cors:
+    allowed-origins: ${HOSPIVET_FRONTEND_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+  bootstrap:
+    username: ${HOSPIVET_BOOTSTRAP_USERNAME:}
+    password: ${HOSPIVET_BOOTSTRAP_PASSWORD:}
+    ci: ${HOSPIVET_BOOTSTRAP_CI:}
+    nombre: ${HOSPIVET_BOOTSTRAP_NOMBRE:}
+    apellido: ${HOSPIVET_BOOTSTRAP_APELLIDO:}
+    telefono: ${HOSPIVET_BOOTSTRAP_TELEFONO:}
+    correo: ${HOSPIVET_BOOTSTRAP_CORREO:}
+
