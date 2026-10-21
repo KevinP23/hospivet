@@ -1,0 +1,54 @@
+package com.hospivet.auth.service;
+
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.hospivet.auth.dto.AuthResponse;
+import com.hospivet.auth.dto.LoginRequest;
+import com.hospivet.auth.mapper.UsuarioMapper;
+import com.hospivet.auth.model.Usuario;
+import com.hospivet.common.exception.BusinessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class AuthService {
+
+    private final UsuarioMapper usuarioMapper;
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthService(UsuarioMapper usuarioMapper, PasswordEncoder passwordEncoder) {
+        this.usuarioMapper = usuarioMapper;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    public AuthenticatedUser autenticar(LoginRequest request) {
+        Usuario usuario = usuarioMapper.selectOne(Wrappers.<Usuario>lambdaQuery()
+                .eq(Usuario::getNombreUsuario, request.usuario()));
+
+        if (usuario == null || !Boolean.TRUE.equals(usuario.getActivo())) {
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado");
+        }
+        if (!"VETERINARIO".equals(usuario.getRol())) {
+            throw new BusinessException(HttpStatus.FORBIDDEN,
+                    "El acceso de esta entrega está habilitado solo para veterinarios");
+        }
+        if (!passwordEncoder.matches(request.contrasena(), usuario.getClaveHash())) {
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "Contraseña incorrecta");
+        }
+
+        Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
+                usuario.getNombreUsuario(), null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRol())));
+        return new AuthenticatedUser(authentication,
+                new AuthResponse(usuario.getIdUsuario(), usuario.getNombreUsuario(), usuario.getRol()));
+    }
+
+    public record AuthenticatedUser(Authentication authentication, AuthResponse response) {
+    }
+}
+
