@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:hospivet;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+hospivet:
+  cors:
+    allowed-origin: http://localhost:5173
+  bootstrap:
+    username:
+    password:
+    ci:
+    nombre:
+    apellido:
+    telefono:
+    correo:
+
