@@ -6,6 +6,9 @@ Base funcional para inicio de sesión de veterinarios, registro de clientes, reg
 
 - `backend`: Java 21, Spring Boot, Spring Security, MyBatis-Plus, Flyway y PostgreSQL.
 - `frontend`: Vue 3, JavaScript, Vite y Element Plus.
+- `docs/METODOLOGIA.md`: ciclo de trabajo por módulo (plan, aprobación, codificación, pruebas manuales y revisión).
+- `docs/modulos`: plan, pruebas manuales y revisiones de cada módulo.
+- `docs/auditoria`: revisiones técnicas del código.
 - `docs/trazabilidad`: decisiones, requisitos implementados y cambios documentales pendientes.
 - `compose.yaml`: PostgreSQL para desarrollo local.
 
