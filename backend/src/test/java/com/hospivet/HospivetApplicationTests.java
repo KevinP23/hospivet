@@ -23,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
@@ -186,6 +187,32 @@ class HospivetApplicationTests {
     }
 
     @Test
+    void verificaLaContrasenaAntesDelRol() throws Exception {
+        Usuario cliente = new Usuario();
+        cliente.setNombreUsuario("cliente");
+        cliente.setClaveHash(passwordEncoder.encode("clave-cliente"));
+        cliente.setRol("CLIENTE");
+        cliente.setActivo(true);
+        cliente.setFechaCreacion(LocalDateTime.now());
+        usuarioMapper.insert(cliente);
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content("""
+                                {"usuario":"cliente","contrasena":"incorrecta"}
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Contraseña incorrecta"));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content("""
+                                {"usuario":"cliente","contrasena":"clave-cliente"}
+                                """))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void devuelveErroresPorCampoYNoRegistraClienteInvalido() throws Exception {
         mockMvc.perform(post("/api/clientes")
                         .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -252,6 +279,15 @@ class HospivetApplicationTests {
                 .andExpect(jsonPath("$[0].nombre").value("Amoxicilina 250 mg"));
 
         assertThat(movimientoInventarioMapper.selectCount(null)).isEqualTo(1);
+        var movimiento = movimientoInventarioMapper.selectList(null).get(0);
+        assertThat(movimiento.getStockAnterior()).isEqualTo(42);
+        assertThat(movimiento.getStockResultante()).isEqualTo(5);
+        assertThat(movimiento.getCantidad()).isEqualTo(37);
+
+        mockMvc.perform(get("/api/inventario/categorias")
+                        .session((org.springframework.mock.web.MockHttpSession) session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0]").value("Medicamento"));
 
         mockMvc.perform(delete("/api/inventario/productos/{idProducto}", idProducto)
                         .session((org.springframework.mock.web.MockHttpSession) session)
@@ -305,12 +341,14 @@ class HospivetApplicationTests {
         long idMascota = objectMapper.readTree(mascota.getResponse().getContentAsString())
                 .get("idMascota").asLong();
 
-        String nuevaCita = """
+        LocalDate dia = LocalDate.now().plusDays(7);
+        String plantillaCita = """
                 {
                   "idCliente":%d,"idMascota":%d,"idServicio":%d,
-                  "fechaHora":"2026-11-10T09:00:00","motivo":"Control preventivo"
+                  "fechaHora":"%sT%s:00","motivo":"Control preventivo"
                 }
-                """.formatted(idCliente, idMascota, servicioInicialId);
+                """;
+        String nuevaCita = plantillaCita.formatted(idCliente, idMascota, servicioInicialId, dia, "09:00");
         MvcResult creada = mockMvc.perform(post("/api/citas")
                         .session(session).with(csrf())
                         .contentType("application/json").content(nuevaCita))
@@ -329,26 +367,49 @@ class HospivetApplicationTests {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Horario no disponible, seleccione otro"));
 
+        // D-11: la consulta dura 30 minutos, por lo que 09:15 se solapa y 09:30 no.
+        mockMvc.perform(post("/api/citas")
+                        .session(session).with(csrf())
+                        .contentType("application/json")
+                        .content(plantillaCita.formatted(idCliente, idMascota, servicioInicialId, dia, "09:15")))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Horario no disponible, seleccione otro"));
+
+        // D-10: no se registran citas en el pasado.
+        mockMvc.perform(post("/api/citas")
+                        .session(session).with(csrf())
+                        .contentType("application/json")
+                        .content(plantillaCita.formatted(idCliente, idMascota, servicioInicialId,
+                                LocalDate.now().minusDays(1), "09:00")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.fechaHora").value("Seleccione una fecha y hora futuras"));
+
         mockMvc.perform(put("/api/citas/{idCita}", idCita)
                         .session(session).with(csrf())
                         .contentType("application/json")
                         .content("""
-                                {"idServicio":%d,"fechaHora":"2026-11-10T10:30:00"}
-                                """.formatted(servicioInicialId)))
+                                {"idServicio":%d,"fechaHora":"%sT10:30:00"}
+                                """.formatted(servicioInicialId, dia)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.fechaHora").value("2026-11-10T10:30:00"));
+                .andExpect(jsonPath("$.fechaHora").value(dia + "T10:30:00"));
 
-        mockMvc.perform(get("/api/citas").param("fecha", "2026-11-10").session(session))
+        mockMvc.perform(post("/api/citas")
+                        .session(session).with(csrf())
+                        .contentType("application/json")
+                        .content(plantillaCita.formatted(idCliente, idMascota, servicioInicialId, dia, "09:30")))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/citas").param("fecha", dia.toString()).session(session))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].codigo").value(CitaCode(idCita)))
-                .andExpect(jsonPath("$[0].estado").value("PROGRAMADA"));
+                .andExpect(jsonPath("$[1].codigo").value(CitaCode(idCita)))
+                .andExpect(jsonPath("$[1].estado").value("PROGRAMADA"));
 
         mockMvc.perform(patch("/api/citas/{idCita}/cancelacion", idCita)
                         .session(session).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("CANCELADA"));
 
-        assertThat(citaMapper.selectCount(null)).isEqualTo(1);
+        assertThat(citaMapper.selectCount(null)).isEqualTo(2);
     }
 
     private String CitaCode(long idCita) {
