@@ -1,8 +1,6 @@
 package com.hospivet.inventario.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.hospivet.auth.mapper.UsuarioMapper;
-import com.hospivet.auth.model.Usuario;
 import com.hospivet.common.exception.BusinessException;
 import com.hospivet.inventario.dto.ProductoCreateRequest;
 import com.hospivet.inventario.dto.ProductoResponse;
@@ -11,6 +9,7 @@ import com.hospivet.inventario.mapper.MovimientoInventarioMapper;
 import com.hospivet.inventario.mapper.ProductoMapper;
 import com.hospivet.inventario.model.MovimientoInventario;
 import com.hospivet.inventario.model.Producto;
+import com.hospivet.veterinario.service.VeterinarioSesionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,14 +24,14 @@ public class InventarioService {
 
     private final ProductoMapper productoMapper;
     private final MovimientoInventarioMapper movimientoMapper;
-    private final UsuarioMapper usuarioMapper;
+    private final VeterinarioSesionService veterinarioSesionService;
 
     public InventarioService(ProductoMapper productoMapper,
                              MovimientoInventarioMapper movimientoMapper,
-                             UsuarioMapper usuarioMapper) {
+                             VeterinarioSesionService veterinarioSesionService) {
         this.productoMapper = productoMapper;
         this.movimientoMapper = movimientoMapper;
-        this.usuarioMapper = usuarioMapper;
+        this.veterinarioSesionService = veterinarioSesionService;
     }
 
     public List<ProductoResponse> listar(String buscar, String categoria) {
@@ -50,6 +49,16 @@ public class InventarioService {
                 .filter(producto -> categoriaNormalizada == null
                         || normalize(producto.getCategoria()).contains(categoriaNormalizada))
                 .map(ProductoResponse::from)
+                .toList();
+    }
+
+    public List<String> listarCategorias() {
+        return productoMapper.selectList(Wrappers.<Producto>lambdaQuery()
+                        .eq(Producto::getActivo, true))
+                .stream()
+                .map(Producto::getCategoria)
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
                 .toList();
     }
 
@@ -81,9 +90,11 @@ public class InventarioService {
 
             MovimientoInventario movimiento = new MovimientoInventario();
             movimiento.setIdProducto(producto.getIdProducto());
-            movimiento.setIdVeterinario(requireVeterinarioId(nombreUsuario));
+            movimiento.setIdVeterinario(veterinarioSesionService.requireIdVeterinario(nombreUsuario));
             movimiento.setTipo("AJUSTE");
             movimiento.setCantidad(Math.abs(nuevaCantidad - cantidadAnterior));
+            movimiento.setStockAnterior(cantidadAnterior);
+            movimiento.setStockResultante(nuevaCantidad);
             movimiento.setFechaHora(LocalDateTime.now());
             movimiento.setMotivo("Stock actualizado de %d a %d".formatted(cantidadAnterior, nuevaCantidad));
             movimientoMapper.insert(movimiento);
@@ -105,16 +116,6 @@ public class InventarioService {
             throw new BusinessException(HttpStatus.NOT_FOUND, "Producto no encontrado");
         }
         return producto;
-    }
-
-    private Long requireVeterinarioId(String nombreUsuario) {
-        Usuario usuario = usuarioMapper.selectOne(Wrappers.<Usuario>lambdaQuery()
-                .eq(Usuario::getNombreUsuario, nombreUsuario)
-                .eq(Usuario::getActivo, true));
-        if (usuario == null || !"VETERINARIO".equals(usuario.getRol())) {
-            throw new BusinessException(HttpStatus.FORBIDDEN, "Veterinario no autorizado");
-        }
-        return usuario.getIdUsuario();
     }
 
     private String blankToNull(String value) {

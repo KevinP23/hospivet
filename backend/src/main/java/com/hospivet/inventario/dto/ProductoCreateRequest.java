@@ -1,6 +1,7 @@
 package com.hospivet.inventario.dto;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -23,6 +24,7 @@ public record ProductoCreateRequest(
 
         @NotNull(message = "Complete los campos obligatorios")
         @DecimalMin(value = "0.0", inclusive = false, message = "Precio o cantidad inválidos")
+        @Digits(integer = 8, fraction = 2, message = "Precio o cantidad inválidos")
         BigDecimal precio,
 
         @NotNull(message = "Complete los campos obligatorios")

@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/inventario/productos")
+@RequestMapping("/api/inventario")
 public class InventarioController {
 
     private final InventarioService inventarioService;
@@ -30,27 +30,32 @@ public class InventarioController {
         this.inventarioService = inventarioService;
     }
 
-    @GetMapping
+    @GetMapping("/productos")
     public List<ProductoResponse> listar(
             @RequestParam(required = false) String buscar,
             @RequestParam(required = false) String categoria) {
         return inventarioService.listar(buscar, categoria);
     }
 
-    @PostMapping
+    @GetMapping("/categorias")
+    public List<String> listarCategorias() {
+        return inventarioService.listarCategorias();
+    }
+
+    @PostMapping("/productos")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductoResponse agregar(@Valid @RequestBody ProductoCreateRequest request) {
         return inventarioService.agregar(request);
     }
 
-    @PatchMapping("/{idProducto}/stock")
+    @PatchMapping("/productos/{idProducto}/stock")
     public ProductoResponse actualizarStock(@PathVariable Long idProducto,
                                              @Valid @RequestBody StockUpdateRequest request,
                                              Authentication authentication) {
         return inventarioService.actualizarStock(idProducto, request, authentication.getName());
     }
 
-    @DeleteMapping("/{idProducto}")
+    @DeleteMapping("/productos/{idProducto}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long idProducto) {
         inventarioService.eliminar(idProducto);

@@ -1,10 +1,11 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   actualizarStock,
   agregarProducto,
   eliminarProducto,
+  listarCategorias,
   listarProductos,
 } from '../../api/inventario'
 import { apiFieldErrors, apiMessage } from '../../api/http'
@@ -23,9 +24,9 @@ const addForm = reactive({
 })
 const selectedProduct = ref(null)
 const stockSearch = ref('')
+const stockMatches = ref([])
 const nuevaCantidad = ref('')
-
-const categories = computed(() => [...new Set(productos.value.map((producto) => producto.categoria))].sort())
+const categories = ref([])
 
 const addRules = {
   nombre: [{ required: true, message: 'Complete los campos obligatorios', trigger: 'blur' }],
@@ -68,10 +69,15 @@ async function load() {
   loading.value = true
   resetMessages()
   try {
-    productos.value = await listarProductos({
-      buscar: filtros.buscar || undefined,
-      categoria: filtros.categoria || undefined,
-    })
+    const [loadedProducts, loadedCategories] = await Promise.all([
+      listarProductos({
+        buscar: filtros.buscar || undefined,
+        categoria: filtros.categoria || undefined,
+      }),
+      listarCategorias(),
+    ])
+    productos.value = loadedProducts
+    categories.value = loadedCategories
   } catch (error) {
     errorMessage.value = apiMessage(error, 'No fue posible consultar el inventario')
   } finally {
@@ -83,6 +89,7 @@ function openList() {
   mode.value = 'list'
   selectedProduct.value = null
   stockSearch.value = ''
+  stockMatches.value = []
   nuevaCantidad.value = ''
   resetMessages()
   load()
@@ -128,27 +135,40 @@ async function submitAdd() {
 
 function openStock(producto = null) {
   selectedProduct.value = producto
-  stockSearch.value = producto ? `${producto.codigo} — ${producto.nombre}` : ''
+  stockSearch.value = producto ? producto.nombre : ''
+  stockMatches.value = []
   nuevaCantidad.value = producto?.stockActual ?? ''
   resetMessages()
   mode.value = 'stock'
 }
 
-function findStockProduct() {
-  resetMessages()
-  const criterion = stockSearch.value.trim().toLocaleLowerCase()
-  selectedProduct.value = productos.value.find((producto) =>
-    producto.codigo.toLocaleLowerCase() === criterion
-    || producto.nombre.toLocaleLowerCase() === criterion
-    || `${producto.codigo} — ${producto.nombre}`.toLocaleLowerCase() === criterion,
-  ) || null
+function selectStockProduct(producto) {
+  selectedProduct.value = producto
+  nuevaCantidad.value = producto ? producto.stockActual : ''
+}
 
-  if (!selectedProduct.value) {
-    nuevaCantidad.value = ''
+// Busca por parte del nombre o código en todo el inventario, sin depender de los filtros del listado.
+async function findStockProduct() {
+  resetMessages()
+  selectStockProduct(null)
+  stockMatches.value = []
+  const criterion = stockSearch.value.trim()
+  if (!criterion) {
     errorMessage.value = 'Producto no encontrado'
     return
   }
-  nuevaCantidad.value = selectedProduct.value.stockActual
+
+  saving.value = true
+  try {
+    const matches = await listarProductos({ buscar: criterion })
+    if (matches.length === 0) errorMessage.value = 'Producto no encontrado'
+    else if (matches.length === 1) selectStockProduct(matches[0])
+    else stockMatches.value = matches
+  } catch (error) {
+    errorMessage.value = apiMessage(error, 'No fue posible buscar el producto')
+  } finally {
+    saving.value = false
+  }
 }
 
 async function submitStock() {
@@ -157,14 +177,15 @@ async function submitStock() {
     errorMessage.value = 'Producto no encontrado'
     return
   }
-  if (!Number.isInteger(Number(nuevaCantidad.value)) || Number(nuevaCantidad.value) < 0) {
+  const cantidad = String(nuevaCantidad.value ?? '').trim()
+  if (!cantidad || !Number.isInteger(Number(cantidad)) || Number(cantidad) < 0) {
     errorMessage.value = 'Cantidad inválida'
     return
   }
 
   saving.value = true
   try {
-    await actualizarStock(selectedProduct.value.idProducto, Number(nuevaCantidad.value))
+    await actualizarStock(selectedProduct.value.idProducto, Number(cantidad))
     ElMessage.success('Existencia actualizada correctamente')
     openList()
   } catch (error) {
@@ -313,6 +334,21 @@ onMounted(load)
           <el-form-item label="Buscar producto">
             <el-input v-model="stockSearch" placeholder="Código o nombre" @keyup.enter="findStockProduct" />
           </el-form-item>
+          <el-form-item v-if="stockMatches.length > 1" label="Coincidencias">
+            <el-select
+              :model-value="selectedProduct?.idProducto"
+              placeholder="Seleccione el producto"
+              class="full-width"
+              @change="(id) => selectStockProduct(stockMatches.find((producto) => producto.idProducto === id))"
+            >
+              <el-option
+                v-for="producto in stockMatches"
+                :key="producto.idProducto"
+                :label="`${producto.codigo} — ${producto.nombre}`"
+                :value="producto.idProducto"
+              />
+            </el-select>
+          </el-form-item>
           <el-form-item label="Existencia actual">
             <el-input :model-value="selectedProduct ? `${selectedProduct.stockActual} unidades` : '—'" readonly />
           </el-form-item>
@@ -321,7 +357,7 @@ onMounted(load)
           </el-form-item>
         </div>
         <div class="form-actions">
-          <el-button type="primary" @click="findStockProduct">Buscar producto</el-button>
+          <el-button type="primary" :loading="saving && !selectedProduct" @click="findStockProduct">Buscar producto</el-button>
           <el-button v-if="selectedProduct" plain :loading="saving" @click="submitStock">Guardar cambios</el-button>
           <el-button plain @click="openList">Cancelar</el-button>
         </div>

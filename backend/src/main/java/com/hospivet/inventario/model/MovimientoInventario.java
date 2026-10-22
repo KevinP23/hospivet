@@ -15,6 +15,8 @@ public class MovimientoInventario {
     private Long idVeterinario;
     private String tipo;
     private Long cantidad;
+    private Long stockAnterior;
+    private Long stockResultante;
     private LocalDateTime fechaHora;
     private String motivo;
 
@@ -28,6 +30,10 @@ public class MovimientoInventario {
     public void setTipo(String tipo) { this.tipo = tipo; }
     public Long getCantidad() { return cantidad; }
     public void setCantidad(Long cantidad) { this.cantidad = cantidad; }
+    public Long getStockAnterior() { return stockAnterior; }
+    public void setStockAnterior(Long stockAnterior) { this.stockAnterior = stockAnterior; }
+    public Long getStockResultante() { return stockResultante; }
+    public void setStockResultante(Long stockResultante) { this.stockResultante = stockResultante; }
     public LocalDateTime getFechaHora() { return fechaHora; }
     public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
     public String getMotivo() { return motivo; }
