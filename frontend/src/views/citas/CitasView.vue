@@ -12,6 +12,7 @@ import {
   registrarCita,
 } from '../../api/citas'
 import { apiFieldErrors, apiMessage } from '../../api/http'
+import { esDiaPasado, esFuturo, hoyLocal } from '../../utils/fechas'
 
 const mode = ref('list')
 const formRef = ref()
@@ -20,7 +21,7 @@ const clientes = ref([])
 const mascotas = ref([])
 const servicios = ref([])
 const selectedCita = ref(null)
-const filterDate = ref(new Date().toISOString().slice(0, 10))
+const filterDate = ref(hoyLocal())
 const loading = ref(false)
 const saving = ref(false)
 const errorMessage = ref('')
@@ -157,9 +158,17 @@ async function validateForm(properties = undefined) {
   return true
 }
 
+function requireFutureDateTime() {
+  if (esFuturo(form.fecha, form.hora)) return true
+  errorMessage.value = 'Seleccione una fecha y hora futuras'
+  fieldErrors.value.hora = errorMessage.value
+  return false
+}
+
 async function submitCreate() {
   resetMessages()
   if (!await validateForm()) return
+  if (!requireFutureDateTime()) return
   saving.value = true
   try {
     await registrarCita(appointmentPayload(true))
@@ -168,7 +177,8 @@ async function submitCreate() {
   } catch (error) {
     errorMessage.value = apiMessage(error, 'No fue posible registrar la cita')
     fieldErrors.value = apiFieldErrors(error)
-    if (errorMessage.value === 'Horario no disponible, seleccione otro') {
+    if (fieldErrors.value.fechaHora) errorMessage.value = fieldErrors.value.fechaHora
+    if (errorMessage.value === 'Horario no disponible, seleccione otro' || fieldErrors.value.fechaHora) {
       fieldErrors.value.hora = errorMessage.value
     }
   } finally {
@@ -191,6 +201,7 @@ async function submitEdit() {
     })
     return
   }
+  if (!requireFutureDateTime()) return
   saving.value = true
   try {
     await modificarCita(selectedCita.value.idCita, appointmentPayload(false))
@@ -199,7 +210,8 @@ async function submitEdit() {
   } catch (error) {
     errorMessage.value = apiMessage(error, 'No fue posible modificar la cita')
     fieldErrors.value = apiFieldErrors(error)
-    if (errorMessage.value === 'Horario no disponible, seleccione otro') {
+    if (fieldErrors.value.fechaHora) errorMessage.value = fieldErrors.value.fechaHora
+    if (errorMessage.value === 'Horario no disponible, seleccione otro' || fieldErrors.value.fechaHora) {
       fieldErrors.value.hora = errorMessage.value
     }
   } finally {
@@ -313,7 +325,7 @@ onMounted(initialize)
               </el-select>
             </el-form-item>
             <el-form-item label="Fecha" prop="fecha" :error="fieldErrors.fecha">
-              <el-date-picker v-model="form.fecha" type="date" format="DD/MM/YYYY" value-format="YYYY-MM-DD" class="full-width" />
+              <el-date-picker v-model="form.fecha" type="date" format="DD/MM/YYYY" value-format="YYYY-MM-DD" :disabled-date="esDiaPasado" class="full-width" />
             </el-form-item>
             <el-form-item label="Hora" prop="hora" :error="fieldErrors.hora">
               <el-time-picker v-model="form.hora" format="HH:mm" value-format="HH:mm" class="full-width" />
@@ -354,7 +366,7 @@ onMounted(initialize)
               </el-select>
             </el-form-item>
             <el-form-item label="Fecha" prop="fecha" :error="fieldErrors.fecha">
-              <el-date-picker v-model="form.fecha" type="date" format="DD/MM/YYYY" value-format="YYYY-MM-DD" class="full-width" />
+              <el-date-picker v-model="form.fecha" type="date" format="DD/MM/YYYY" value-format="YYYY-MM-DD" :disabled-date="esDiaPasado" class="full-width" />
             </el-form-item>
             <el-form-item label="Hora" prop="hora" :error="fieldErrors.hora">
               <el-time-picker v-model="form.hora" format="HH:mm" value-format="HH:mm" class="full-width" />
