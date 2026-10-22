@@ -16,7 +16,10 @@ Fuente principal: Iteración 5 integrada, casos R5.1 a R5.4. El modelo de datos 
 - La mascota seleccionada debe estar activa y pertenecer al cliente seleccionado.
 - El servicio debe estar activo.
 - Una cita nueva queda en estado `PROGRAMADA`.
-- No se permiten dos citas `PROGRAMADA` del mismo veterinario en la misma fecha y hora.
+- Una cita ocupa desde su fecha y hora de inicio hasta el fin de la duración de su servicio. No se permite que dos citas `PROGRAMADA` del mismo veterinario se solapen (D-11).
+- La fecha y hora deben ser posteriores al momento actual al registrar y al modificar: `Seleccione una fecha y hora futuras` (D-10).
+- El motivo es obligatorio (D-12).
+- El registro y la modificación bloquean la agenda del veterinario durante la transacción para evitar reservas simultáneas (D-13).
 - El conflicto conserva los datos del formulario y muestra exactamente: `Horario no disponible, seleccione otro`.
 - Si el filtro no devuelve filas se conserva la fecha y se muestra: `No hay citas registradas para la fecha seleccionada`.
 - Modificar y cancelar solo operan sobre citas programadas del veterinario que inició sesión.

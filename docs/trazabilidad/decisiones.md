@@ -13,13 +13,18 @@ Estas decisiones se aplican a la primera entrega de HOSPIVET. Los documentos Wor
 | D-07 | PostgreSQL es la base de producción/desarrollo y Flyway administra el esquema. | La creación de tablas queda versionada y repetible. H2 se usa únicamente en pruebas automatizadas. |
 | D-08 | Los formularios solo se limpian después de una respuesta exitosa. | Ante validaciones o errores del servidor se mantienen todos los valores ingresados. |
 | D-09 | Backend y frontend son módulos separados bajo una sola carpeta de proyecto. | Facilita ejecutar Spring Boot y Vue de forma independiente durante el desarrollo. |
+| D-10 | Las citas solo se registran o modifican con fecha y hora posteriores al momento actual. | Decisión del responsable (auditoría AUD-O1). Mensaje: `Seleccione una fecha y hora futuras`. |
+| D-11 | Un horario está ocupado si se solapa con la duración del servicio de otra cita `PROGRAMADA` del mismo veterinario. | Decisión del responsable (AUD-O2). Usa `servicio.duracion_min`; las citas canceladas liberan el horario. |
+| D-12 | El motivo de la cita es obligatorio. | Decisión del responsable (AUD-O3). Difiere del diccionario 4.7.6, que lo deja opcional. |
+| D-13 | El registro y la modificación de citas bloquean la fila del veterinario durante la transacción. | Evita que dos solicitudes simultáneas ocupen el mismo horario; un índice parcial no cubre solapamientos y H2 no lo admite. |
 
 ## Alcance actual
 
-- Inicio y cierre de sesión para veterinarios.
-- Registro y listado de clientes.
-- Registro y listado de mascotas vinculadas obligatoriamente a un cliente activo.
+- Inicio y cierre de sesión para veterinarios (R1.1).
+- Registro de clientes (R2.1) y de mascotas vinculadas obligatoriamente a un cliente activo (R3.1).
 - Cálculo de edad desde la fecha de nacimiento.
+- Inventario: consulta, alta, actualización de stock con movimiento de auditoría y baja lógica (R4.1–R4.4).
+- Citas: registro, modificación, cancelación y consulta del veterinario (R5.1–R5.4).
 - Validaciones tanto en frontend como en backend, con errores asociados a cada campo.
 
-Fuera de alcance por ahora: alta de usuarios desde la interfaz, acceso de clientes, edición/eliminación, citas, historia clínica, vacunas, inventario y reportes.
+Fuera de alcance por ahora: recuperar contraseña (R1.2), alta de usuarios desde la interfaz, acceso de clientes (R10), edición o baja de clientes y mascotas, reportes (R6), facturación (R7), atención médica (R8) y promociones (R9). El estado de cada módulo está en `docs/modulos/README.md`.
