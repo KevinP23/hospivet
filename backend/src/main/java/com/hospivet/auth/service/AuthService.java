@@ -33,12 +33,12 @@ public class AuthService {
         if (usuario == null || !Boolean.TRUE.equals(usuario.getActivo())) {
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado");
         }
+        if (!passwordEncoder.matches(request.contrasena(), usuario.getClaveHash())) {
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "Contraseña incorrecta");
+        }
         if (!"VETERINARIO".equals(usuario.getRol())) {
             throw new BusinessException(HttpStatus.FORBIDDEN,
                     "El acceso de esta entrega está habilitado solo para veterinarios");
-        }
-        if (!passwordEncoder.matches(request.contrasena(), usuario.getClaveHash())) {
-            throw new BusinessException(HttpStatus.UNAUTHORIZED, "Contraseña incorrecta");
         }
 
         Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(

@@ -1,9 +1,11 @@
 package com.hospivet.mascota.dto;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -29,9 +31,10 @@ public record MascotaCreateRequest(
 
         @NotNull(message = "Complete los campos obligatorios")
         @DecimalMin(value = "0.0", inclusive = false, message = "Edad o peso inválido")
+        @Digits(integer = 4, fraction = 2, message = "Edad o peso inválido")
         BigDecimal peso,
 
-        @Size(max = 1, message = "El sexo debe ocupar un carácter")
+        @Pattern(regexp = "M|H", message = "Sexo inválido")
         String sexo,
 
         @Size(max = 255, message = "Las observaciones no pueden superar 255 caracteres")
