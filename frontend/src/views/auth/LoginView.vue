@@ -1,10 +1,11 @@
 <script setup>
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { login } from '../../api/auth'
 import { apiFieldErrors, apiMessage } from '../../api/http'
 import AppHeader from '../../components/AppHeader.vue'
 
+const route = useRoute()
 const router = useRouter()
 const formRef = ref()
 const loading = ref(false)
@@ -47,6 +48,12 @@ async function submit() {
           <p>Ingresa tus credenciales para continuar</p>
         </div>
 
+        <el-alert
+          v-if="route.query.sesion === 'expirada' && !errorMessage"
+          title="Su sesión expiró, inicie sesión nuevamente"
+          type="warning"
+          :closable="false"
+        />
         <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" />
 
         <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent="submit">

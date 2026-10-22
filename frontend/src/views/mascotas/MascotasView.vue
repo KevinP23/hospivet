@@ -4,6 +4,7 @@ import { ElMessage } from 'element-plus'
 import { listarClientes } from '../../api/clientes'
 import { registrarMascota } from '../../api/mascotas'
 import { apiFieldErrors, apiMessage } from '../../api/http'
+import { hoyLocal } from '../../utils/fechas'
 
 const formRef = ref()
 const clientes = ref([])
@@ -11,7 +12,6 @@ const loading = ref(false)
 const saving = ref(false)
 const errorMessage = ref('')
 const fieldErrors = ref({})
-const today = new Date().toISOString().slice(0, 10)
 
 const emptyForm = () => ({
   idCliente: null,
@@ -33,7 +33,9 @@ const rules = {
     { required: true, message: 'Complete los campos obligatorios', trigger: 'blur' },
     {
       validator: (_rule, value, callback) => {
-        if (value == null || Number(value) <= 0) callback(new Error('Edad o peso inválido'))
+        if (value == null || Number(value) <= 0 || !/^\d{1,4}(\.\d{1,2})?$/.test(String(value).trim())) {
+          callback(new Error('Edad o peso inválido'))
+        }
         else callback()
       },
       trigger: 'blur',
@@ -42,7 +44,7 @@ const rules = {
   fechaNacimiento: [
     {
       validator: (_rule, value, callback) => {
-        if (value && value > today) callback(new Error('Edad o peso inválido'))
+        if (value && value > hoyLocal()) callback(new Error('Edad o peso inválido'))
         else callback()
       },
       trigger: 'change',
@@ -54,10 +56,13 @@ const calculatedAge = computed(() => {
   if (!form.fechaNacimiento) return ''
   const birthDate = new Date(`${form.fechaNacimiento}T00:00:00`)
   const currentDate = new Date()
-  let age = currentDate.getFullYear() - birthDate.getFullYear()
-  const monthDifference = currentDate.getMonth() - birthDate.getMonth()
-  if (monthDifference < 0 || (monthDifference === 0 && currentDate.getDate() < birthDate.getDate())) age -= 1
-  return age < 0 ? '' : `${age} ${age === 1 ? 'año' : 'años'}`
+  let months = (currentDate.getFullYear() - birthDate.getFullYear()) * 12
+    + currentDate.getMonth() - birthDate.getMonth()
+  if (currentDate.getDate() < birthDate.getDate()) months -= 1
+  if (months < 0) return ''
+  if (months < 12) return `${months} ${months === 1 ? 'mes' : 'meses'}`
+  const age = Math.floor(months / 12)
+  return `${age} ${age === 1 ? 'año' : 'años'}`
 })
 
 async function load() {

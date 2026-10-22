@@ -22,6 +22,7 @@ const rules = {
   nombre: [{ required: true, message: 'Complete los campos obligatorios', trigger: 'blur' }],
   apellido: [{ required: true, message: 'Complete los campos obligatorios', trigger: 'blur' }],
   telefono: [{ required: true, message: 'Complete los campos obligatorios', trigger: 'blur' }],
+  correo: [{ type: 'email', message: 'Correo inválido', trigger: 'blur' }],
 }
 
 async function submit() {
@@ -30,7 +31,10 @@ async function submit() {
   const validationErrors = await formRef.value.validate().then(() => null).catch((errors) => errors)
   if (validationErrors) {
     const invalidCi = validationErrors.ci?.some((error) => error.message === 'CI inválido')
-    errorMessage.value = invalidCi ? 'CI inválido' : 'Complete los campos obligatorios'
+    const invalidEmail = validationErrors.correo?.some((error) => error.message === 'Correo inválido')
+    if (invalidCi) errorMessage.value = 'CI inválido'
+    else if (invalidEmail && Object.keys(validationErrors).length === 1) errorMessage.value = 'Correo inválido'
+    else errorMessage.value = 'Complete los campos obligatorios'
     return
   }
 
