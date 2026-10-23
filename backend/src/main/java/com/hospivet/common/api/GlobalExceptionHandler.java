@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiError> handleBusiness(BusinessException exception) {
-        return build(exception.getStatus(), exception.getMessage(), Map.of());
+        return build(exception.getStatus(), exception.getMessage(), exception.getFieldErrors());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
