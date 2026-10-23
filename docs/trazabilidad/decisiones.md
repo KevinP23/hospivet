@@ -18,6 +18,7 @@ Estas decisiones se aplican a la primera entrega de HOSPIVET. Los documentos Wor
 | D-12 | El motivo de la cita es obligatorio. | Decisión del responsable (AUD-O3). Difiere del diccionario 4.7.6, que lo deja opcional. |
 | D-13 | El registro y la modificación de citas bloquean la fila del veterinario durante la transacción. | Evita que dos solicitudes simultáneas ocupen el mismo horario; un índice parcial no cubre solapamientos y H2 no lo admite. |
 | D-14 | Atención médica: puntos N-01 a N-06 del plan R08 resueltos con la opción A (la atención nace de la cita al registrar el diagnóstico, la cita pasa a `ATENDIDA`, frecuencia obligatoria, fecha de fin no anterior a la de inicio, *Volver a la ficha* abre *Registrar mascota* y el historial muestra el motivo de la cita). | Decisión del responsable el 2026-10-22; detalle en `requisitos-atencion-medica.md`. |
+| D-15 | Promociones: puntos N-01 a N-06 del plan R09 resueltos con la opción A (listado de promociones, varios servicios y productos opcionales, "Datos inválidos" con la regla bajo el campo al editar, descuento limitado a 0–100, `FINALIZADA` sin uso y búsqueda por selector). | Decisión del responsable el 2026-10-23; detalle en `requisitos-promociones.md`. |
 
 ## Alcance actual
 
@@ -27,6 +28,7 @@ Estas decisiones se aplican a la primera entrega de HOSPIVET. Los documentos Wor
 - Inventario: consulta, alta, actualización de stock con movimiento de auditoría y baja lógica (R4.1–R4.4).
 - Citas: registro, modificación, cancelación y consulta del veterinario (R5.1–R5.4).
 - Atención médica: consultar historial, registrar diagnóstico, tratamiento y receta (R8.1–R8.4).
+- Promociones: crear, editar, publicar y eliminar (R9.1–R9.4).
 - Validaciones tanto en frontend como en backend, con errores asociados a cada campo.
 
-Fuera de alcance por ahora: recuperar contraseña (R1.2), alta de usuarios desde la interfaz, acceso de clientes (R10), edición o baja de clientes y mascotas, reportes (R6), facturación (R7) y promociones (R9). El estado de cada módulo está en `docs/modulos/README.md`.
+Fuera de alcance por ahora: recuperar contraseña (R1.2), alta de usuarios desde la interfaz, acceso de clientes (R10), edición o baja de clientes y mascotas, reportes (R6), y facturación (R7). El estado de cada módulo está en `docs/modulos/README.md`.

@@ -58,3 +58,13 @@ Este archivo identifica correcciones documentales; no modifica los Word original
 3. Unificar R8.4 con el diccionario 4.7.10: la frecuencia es obligatoria y usa el mensaje "Complete medicamento y dosis" (N-03).
 4. Representar en la interfaz *Registrar tratamiento* que la fecha de fin no admite días anteriores a la fecha de inicio (N-04).
 5. Indicar que *Volver a la ficha* lleva a *Registrar mascota* (N-05) y que la columna *Atención* del historial muestra el motivo de la cita de origen (N-06).
+
+## Promociones
+
+1. Agregar la interfaz del listado de promociones a la que regresan *Volver al listado* de *Publicar* y *Eliminar* (N-01).
+2. Unificar el campo *Aplicar a servicio o producto* (un valor en el mockup) con las tablas N:M del diccionario: admite varios y es opcional (N-02).
+3. Unificar el mensaje de *Editar promoción*: la alerta es "Datos inválidos" (R9.2.4, SD-27) y la regla aparece bajo el campo (N-03).
+4. Indicar en *Crear promoción* que el porcentaje solo admite valores de 0 a 100 (N-04).
+5. Definir cuándo una promoción pasa a `FINALIZADA` o retirar ese estado del diccionario (N-05).
+6. Indicar que *Buscar promoción* se elige de las promociones registradas por código o título (N-06).
+

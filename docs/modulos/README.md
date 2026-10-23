@@ -11,7 +11,7 @@ Estado de cada módulo según `docs/METODOLOGIA.md`. Los módulos R01 a R05 se c
 | R05 Citas | R5.1–R5.4 | SD-09 a SD-12 | Implementado (retroactivo) · En revisión | [plan](R05-citas/plan.md) |
 | COR-01 Correcciones de la auditoría | AUD-01 a AUD-15 | — | Cerrado (2026-10-22) | [plan](COR-01-correcciones-auditoria/plan.md) |
 | R08 Atención médica | R8.1–R8.4 | SD-22 a SD-25 | Cerrado (2026-10-23) | [plan](R08-atencion-medica/plan.md) |
-| R09 Promociones | R9.1–R9.4 | SD-26 a SD-29 | En codificación | [plan](R09-promociones/plan.md) |
+| R09 Promociones | R9.1–R9.4 | SD-26 a SD-29 | Cerrado (2026-10-23) | [plan](R09-promociones/plan.md) |
 | R07 Facturación | R7.1–R7.5 | SD-17 a SD-21 | Sin plan | — |
 | R06 Reportes | R6.1–R6.4 | SD-13 a SD-16 | Sin plan | — |
 | R01 Recuperar contraseña | R1.2 | SD-02 | Sin plan | — |
