@@ -7,6 +7,7 @@ import MascotasView from '../views/mascotas/MascotasView.vue'
 import InventarioView from '../views/inventario/InventarioView.vue'
 import CitasView from '../views/citas/CitasView.vue'
 import AtencionView from '../views/atencion/AtencionView.vue'
+import PromocionesView from '../views/promociones/PromocionesView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -23,6 +24,7 @@ const router = createRouter({
         { path: 'inventario', name: 'inventario', component: InventarioView },
         { path: 'citas', name: 'citas', component: CitasView },
         { path: 'atencion', name: 'atencion', component: AtencionView },
+        { path: 'promociones', name: 'promociones', component: PromocionesView },
       ],
     },
   ],

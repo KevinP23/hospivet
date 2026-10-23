@@ -21,7 +21,7 @@ const navigation = [
   { label: 'Atención médica', path: '/atencion', enabled: true },
   { label: 'Facturación', enabled: false },
   { label: 'Reportes', enabled: false },
-  { label: 'Promociones', enabled: false },
+  { label: 'Promociones', path: '/promociones', enabled: true },
 ]
 
 function isActive(item) {
