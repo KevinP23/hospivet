@@ -7,6 +7,9 @@ import com.hospivet.atencion.mapper.DiagnosticoMapper;
 import com.hospivet.atencion.mapper.RecetaMapper;
 import com.hospivet.atencion.mapper.TratamientoMapper;
 import com.hospivet.auth.mapper.UsuarioMapper;
+import com.hospivet.promocion.mapper.PromocionMapper;
+import com.hospivet.promocion.mapper.PromocionProductoMapper;
+import com.hospivet.promocion.mapper.PromocionServicioMapper;
 import com.hospivet.auth.model.Usuario;
 import com.hospivet.cita.mapper.CitaMapper;
 import com.hospivet.cliente.mapper.ClienteMapper;
@@ -86,6 +89,15 @@ class HospivetApplicationTests {
     private RecetaMapper recetaMapper;
 
     @Autowired
+    private PromocionMapper promocionMapper;
+
+    @Autowired
+    private PromocionServicioMapper promocionServicioMapper;
+
+    @Autowired
+    private PromocionProductoMapper promocionProductoMapper;
+
+    @Autowired
     private ServicioMapper servicioMapper;
 
     @Autowired
@@ -95,6 +107,9 @@ class HospivetApplicationTests {
 
     @BeforeEach
     void prepararVeterinario() {
+        promocionServicioMapper.delete(null);
+        promocionProductoMapper.delete(null);
+        promocionMapper.delete(null);
         recetaMapper.delete(null);
         tratamientoMapper.delete(null);
         diagnosticoMapper.delete(null);
@@ -520,6 +535,92 @@ class HospivetApplicationTests {
 
         // La cita atendida ya no se ofrece para originar otra atención.
         mockMvc.perform(get("/api/atenciones/citas-programadas").param("mascotaId", String.valueOf(idMascota)).session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void gestionaPromocionesSegunLaIteracion5() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content("{\"usuario\":\"veterinario\",\"contrasena\":\"clave-segura\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        org.springframework.mock.web.MockHttpSession session =
+                (org.springframework.mock.web.MockHttpSession) login.getRequest().getSession(false);
+
+        // R9.1.3: campos obligatorios.
+        mockMvc.perform(post("/api/promociones")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"titulo\":\"\",\"descripcion\":\"\",\"porcentajeDescuento\":20,"
+                                + "\"fechaInicio\":\"2026-11-30\",\"fechaFin\":\"2026-12-31\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.titulo").value("Campo obligatorio"))
+                .andExpect(jsonPath("$.fieldErrors.descripcion").value("Campo obligatorio"));
+
+        // R9.1.5: la fecha de fin debe ser posterior a la de inicio.
+        mockMvc.perform(post("/api/promociones")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"titulo\":\"Vacunas\",\"descripcion\":\"Descuento\",\"porcentajeDescuento\":20,"
+                                + "\"fechaInicio\":\"2026-11-30\",\"fechaFin\":\"2026-11-30\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("La fecha de fin debe ser posterior a la de inicio"));
+
+        // R9.1.6 y N-02: se guarda en BORRADOR con el servicio asociado.
+        JsonNode creada = objectMapper.readTree(mockMvc.perform(post("/api/promociones")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content(("{\"titulo\":\"20 %% de descuento en vacunas\",\"descripcion\":\"Descuento para vacunación\","
+                                + "\"porcentajeDescuento\":20,\"fechaInicio\":\"2026-11-30\",\"fechaFin\":\"2026-12-31\","
+                                + "\"idsServicio\":[%d]}").formatted(servicioInicialId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado").value("BORRADOR"))
+                .andExpect(jsonPath("$.aplicaA[0]").value("Consulta general"))
+                .andReturn().getResponse().getContentAsString());
+        long idPromocion = creada.get("idPromocion").asLong();
+
+        // R9.2.4 y N-03: Datos inválidos con el campo y la regla.
+        mockMvc.perform(put("/api/promociones/{id}", idPromocion)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"titulo\":\"Vacunas\",\"descripcion\":\"Descuento\",\"porcentajeDescuento\":20,"
+                                + "\"fechaInicio\":\"2026-11-30\",\"fechaFin\":\"2026-11-29\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Datos inválidos"))
+                .andExpect(jsonPath("$.fieldErrors.fechaFin").value("Fin posterior al inicio"));
+        mockMvc.perform(put("/api/promociones/{id}", idPromocion)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"titulo\":\"Vacunas\",\"descripcion\":\"Descuento\",\"porcentajeDescuento\":150,"
+                                + "\"fechaInicio\":\"2026-11-30\",\"fechaFin\":\"2026-12-31\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.porcentajeDescuento").value("Descuento numérico entre 0 y 100"));
+        mockMvc.perform(put("/api/promociones/{id}", idPromocion)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"titulo\":\"Vacunas\",\"descripcion\":\"Descuento\",\"porcentajeDescuento\":20,"
+                                + "\"fechaInicio\":\"2026-11-30\",\"fechaFin\":\"2026-12-31\",\"idsServicio\":[999999]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Datos inválidos"))
+                .andExpect(jsonPath("$.fieldErrors.aplicaA").value("Los productos o servicios seleccionados deben estar registrados"));
+
+        // R9.2.5: guardar cambios.
+        mockMvc.perform(put("/api/promociones/{id}", idPromocion)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"titulo\":\"20 %% de descuento en vacunas\",\"descripcion\":\"Descuento para vacunación\","
+                                .replace("%%", "%") + "\"porcentajeDescuento\":25,\"fechaInicio\":\"2026-11-30\",\"fechaFin\":\"2026-12-31\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.porcentajeDescuento").value(25))
+                .andExpect(jsonPath("$.aplicaA").isEmpty());
+
+        // R9.3.3 y R9.3.2: publicar y ya publicada.
+        mockMvc.perform(patch("/api/promociones/{id}/publicacion", idPromocion).session(session).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("PUBLICADA"));
+        mockMvc.perform(patch("/api/promociones/{id}/publicacion", idPromocion).session(session).with(csrf()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("La promoción ya está publicada"));
+
+        // R9.4.4: eliminar con sus asociaciones.
+        mockMvc.perform(delete("/api/promociones/{id}", idPromocion).session(session).with(csrf()))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/promociones").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
     }
