@@ -35,4 +35,4 @@ Fuente visual revisada: `Iteracion5_Hospivet_integrada.docx`. El documento Word 
 
 ## Elementos fuera del alcance
 
-Atención médica, facturación, reportes y promociones aparecen en la navegación para conservar el diseño, pero permanecen deshabilitados y no constituyen módulos implementados. Inventario y citas ya están implementados; su correspondencia con las interfaces está en `requisitos-inventario.md`, `requisitos-citas.md` y en los planes de `docs/modulos`.
+Facturación, reportes y promociones aparecen en la navegación para conservar el diseño, pero permanecen deshabilitados y no constituyen módulos implementados. Inventario, citas y atención médica ya están implementados; su correspondencia con las interfaces está en `requisitos-inventario.md`, `requisitos-citas.md` y en los planes de `docs/modulos`.

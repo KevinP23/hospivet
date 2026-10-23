@@ -50,3 +50,11 @@ Este archivo identifica correcciones documentales; no modifica los Word original
 5. Representar la regla de disponibilidad: un veterinario no puede tener dos citas `PROGRAMADA` en la misma fecha y hora.
 6. Aclarar que el veterinario se obtiene de la sesión y no se elige libremente en el formulario.
 7. Actualizar DER, diccionario, diagrama de clases y secuencias R5.1–R5.4 para reflejar las relaciones reales entre cita, cliente, mascota, veterinario y servicio.
+
+## Atención médica
+
+1. Ningún caso de uso ni interfaz crea la atención médica. Documentar que, en *Registrar diagnóstico*, el campo *Atención médica* lista también las citas programadas de la mascota y que al guardar sobre una cita se crea su atención (N-01).
+2. Indicar que la cita que origina una atención pasa a `ATENDIDA` (N-02).
+3. Unificar R8.4 con el diccionario 4.7.10: la frecuencia es obligatoria y usa el mensaje "Complete medicamento y dosis" (N-03).
+4. Representar en la interfaz *Registrar tratamiento* que la fecha de fin no admite días anteriores a la fecha de inicio (N-04).
+5. Indicar que *Volver a la ficha* lleva a *Registrar mascota* (N-05) y que la columna *Atención* del historial muestra el motivo de la cita de origen (N-06).
