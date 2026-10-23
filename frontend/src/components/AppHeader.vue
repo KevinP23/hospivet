@@ -18,7 +18,7 @@ const navigation = [
   { label: 'Mascotas', path: '/mascotas', enabled: true },
   { label: 'Inventario', path: '/inventario', enabled: true },
   { label: 'Citas', path: '/citas', enabled: true },
-  { label: 'Atención médica', enabled: false },
+  { label: 'Atención médica', path: '/atencion', enabled: true },
   { label: 'Facturación', enabled: false },
   { label: 'Reportes', enabled: false },
   { label: 'Promociones', enabled: false },
