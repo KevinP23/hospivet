@@ -13,7 +13,8 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
         "com.hospivet.mascota.mapper",
         "com.hospivet.inventario.mapper",
         "com.hospivet.servicio.mapper",
-        "com.hospivet.cita.mapper"
+        "com.hospivet.cita.mapper",
+        "com.hospivet.atencion.mapper"
 })
 public class HospivetApplication {
 

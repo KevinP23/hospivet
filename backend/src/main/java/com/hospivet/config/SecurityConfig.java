@@ -41,7 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "/api/auth/csrf", "/api/health").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/clientes/**", "/api/mascotas/**", "/api/inventario/**",
-                                "/api/servicios/**", "/api/citas/**")
+                                "/api/servicios/**", "/api/citas/**", "/api/atenciones/**", "/api/diagnosticos/**")
                         .hasRole("VETERINARIO")
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions
