@@ -2,6 +2,10 @@ package com.hospivet;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hospivet.atencion.mapper.AtencionMedicaMapper;
+import com.hospivet.atencion.mapper.DiagnosticoMapper;
+import com.hospivet.atencion.mapper.RecetaMapper;
+import com.hospivet.atencion.mapper.TratamientoMapper;
 import com.hospivet.auth.mapper.UsuarioMapper;
 import com.hospivet.auth.model.Usuario;
 import com.hospivet.cita.mapper.CitaMapper;
@@ -70,6 +74,18 @@ class HospivetApplicationTests {
     private CitaMapper citaMapper;
 
     @Autowired
+    private AtencionMedicaMapper atencionMedicaMapper;
+
+    @Autowired
+    private DiagnosticoMapper diagnosticoMapper;
+
+    @Autowired
+    private TratamientoMapper tratamientoMapper;
+
+    @Autowired
+    private RecetaMapper recetaMapper;
+
+    @Autowired
     private ServicioMapper servicioMapper;
 
     @Autowired
@@ -79,6 +95,10 @@ class HospivetApplicationTests {
 
     @BeforeEach
     void prepararVeterinario() {
+        recetaMapper.delete(null);
+        tratamientoMapper.delete(null);
+        diagnosticoMapper.delete(null);
+        atencionMedicaMapper.delete(null);
         citaMapper.delete(null);
         servicioMapper.delete(null);
         movimientoInventarioMapper.delete(null);
@@ -410,6 +430,98 @@ class HospivetApplicationTests {
                 .andExpect(jsonPath("$.estado").value("CANCELADA"));
 
         assertThat(citaMapper.selectCount(null)).isEqualTo(2);
+    }
+
+    @Test
+    void registraAtencionMedicaYConsultaElHistorial() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content("{\"usuario\":\"veterinario\",\"contrasena\":\"clave-segura\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        org.springframework.mock.web.MockHttpSession session =
+                (org.springframework.mock.web.MockHttpSession) login.getRequest().getSession(false);
+
+        long idCliente = objectMapper.readTree(mockMvc.perform(post("/api/clientes")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"ci\":\"5555555\",\"nombre\":\"Ana\",\"apellido\":\"Pérez\",\"telefono\":\"70000001\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString())
+                .get("idCliente").asLong();
+        long idMascota = objectMapper.readTree(mockMvc.perform(post("/api/mascotas")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"idCliente\":%d,\"nombre\":\"Firulais\",\"especie\":\"Canino\",\"peso\":12.5}"
+                                .formatted(idCliente)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString())
+                .get("idMascota").asLong();
+        long idCita = objectMapper.readTree(mockMvc.perform(post("/api/citas")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content(("{\"idCliente\":%d,\"idMascota\":%d,\"idServicio\":%d,"
+                                + "\"fechaHora\":\"%sT09:00:00\",\"motivo\":\"Control clínico\"}")
+                                .formatted(idCliente, idMascota, servicioInicialId, LocalDate.now().plusDays(3))))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString())
+                .get("idCita").asLong();
+
+        // R8.1.3: sin registros previos.
+        mockMvc.perform(get("/api/atenciones/historial").param("mascotaId", String.valueOf(idMascota)).session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+
+        // R8.2.3: diagnóstico vacío.
+        mockMvc.perform(post("/api/atenciones/diagnosticos")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"idCita\":%d,\"descripcion\":\" \"}".formatted(idCita)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.descripcion").value("Ingrese un diagnóstico"));
+
+        // N-01 y N-02: la atención nace de la cita y la cita queda ATENDIDA.
+        JsonNode diagnostico = objectMapper.readTree(mockMvc.perform(post("/api/atenciones/diagnosticos")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"idCita\":%d,\"descripcion\":\"Otitis leve\"}".formatted(idCita)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString());
+        long idDiagnostico = diagnostico.get("idDiagnostico").asLong();
+        long idAtencion = diagnostico.get("idAtencion").asLong();
+        assertThat(citaMapper.selectById(idCita).getEstado()).isEqualTo("ATENDIDA");
+
+        // R8.3.3: tratamiento vacío; diccionario 4.7.9: fecha de fin anterior a la de inicio.
+        mockMvc.perform(post("/api/diagnosticos/{id}/tratamientos", idDiagnostico)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"indicaciones\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.indicaciones").value("Ingrese un tratamiento"));
+        mockMvc.perform(post("/api/diagnosticos/{id}/tratamientos", idDiagnostico)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"indicaciones\":\"Gotas óticas 7 días\",\"fechaInicio\":\"2026-11-10\",\"fechaFin\":\"2026-11-05\"}"))
+                .andExpect(status().isConflict());
+        mockMvc.perform(post("/api/diagnosticos/{id}/tratamientos", idDiagnostico)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"indicaciones\":\"Gotas óticas 7 días\",\"duracion\":\"7 días\","
+                                + "\"fechaInicio\":\"2026-11-10\",\"fechaFin\":\"2026-11-17\"}"))
+                .andExpect(status().isCreated());
+
+        // R8.4.3 y N-03: medicamento, dosis y frecuencia obligatorios con el mismo mensaje.
+        mockMvc.perform(post("/api/atenciones/{id}/recetas", idAtencion)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"medicamento\":\"Gotas óticas\",\"dosis\":\"3 gotas\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.frecuencia").value("Complete medicamento y dosis"));
+        mockMvc.perform(post("/api/atenciones/{id}/recetas", idAtencion)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"medicamento\":\"Gotas óticas\",\"dosis\":\"3 gotas\",\"frecuencia\":\"Cada 12 horas\"}"))
+                .andExpect(status().isCreated());
+
+        // R8.1.2 y N-06: historial con el motivo de la cita de origen.
+        mockMvc.perform(get("/api/atenciones/historial").param("mascotaId", String.valueOf(idMascota)).session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].atencion").value("Control clínico"))
+                .andExpect(jsonPath("$[0].diagnosticos[0]").value("Otitis leve"))
+                .andExpect(jsonPath("$[0].tratamientos[0]").value("Gotas óticas 7 días"))
+                .andExpect(jsonPath("$[0].recetas[0]").value("Gotas óticas"));
+
+        // La cita atendida ya no se ofrece para originar otra atención.
+        mockMvc.perform(get("/api/atenciones/citas-programadas").param("mascotaId", String.valueOf(idMascota)).session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
     }
 
     private String CitaCode(long idCita) {
