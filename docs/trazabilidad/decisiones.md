@@ -19,6 +19,8 @@ Estas decisiones se aplican a la primera entrega de HOSPIVET. Los documentos Wor
 | D-13 | El registro y la modificación de citas bloquean la fila del veterinario durante la transacción. | Evita que dos solicitudes simultáneas ocupen el mismo horario; un índice parcial no cubre solapamientos y H2 no lo admite. |
 | D-14 | Atención médica: puntos N-01 a N-06 del plan R08 resueltos con la opción A (la atención nace de la cita al registrar el diagnóstico, la cita pasa a `ATENDIDA`, frecuencia obligatoria, fecha de fin no anterior a la de inicio, *Volver a la ficha* abre *Registrar mascota* y el historial muestra el motivo de la cita). | Decisión del responsable el 2026-10-22; detalle en `requisitos-atencion-medica.md`. |
 | D-15 | Promociones: puntos N-01 a N-06 del plan R09 resueltos con la opción A (listado de promociones, varios servicios y productos opcionales, "Datos inválidos" con la regla bajo el campo al editar, descuento limitado a 0–100, `FINALIZADA` sin uso y búsqueda por selector). | Decisión del responsable el 2026-10-23; detalle en `requisitos-promociones.md`. |
+| D-16 | HOSPIVET se instala en la computadora de la veterinaria (servidor, base de datos e interfaz en el mismo equipo), no como sitio web publicado. | Indicación del responsable el 2026-10-27; condiciona impresión, correo y la forma de entrega. |
+| D-17 | Facturación: puntos N-01 a N-11 del plan R07 resueltos con la opción A, salvo N-08 con la opción B (listado de facturas, cantidad que sube al repetir el ítem con precio del catálogo, *Consulta general* a Bs 80,00 como precio de prueba, promoción vigente aplicada a sus ítems, solo estado `EMITIDA`, edición por línea, "Datos inválidos" con la regla bajo el campo, impresión directa en la impresora del equipo, correo por SMTP, *Actualizar correo* sobre el registro del cliente y sin descuento de stock). | Decisión del responsable el 2026-10-27; detalle en `requisitos-facturacion.md`. |
 
 ## Alcance actual
 
@@ -29,6 +31,7 @@ Estas decisiones se aplican a la primera entrega de HOSPIVET. Los documentos Wor
 - Citas: registro, modificación, cancelación y consulta del veterinario (R5.1–R5.4).
 - Atención médica: consultar historial, registrar diagnóstico, tratamiento y receta (R8.1–R8.4).
 - Promociones: crear, editar, publicar y eliminar (R9.1–R9.4).
+- Facturación: revisar, editar, generar, imprimir y enviar facturas (R7.1–R7.5).
 - Validaciones tanto en frontend como en backend, con errores asociados a cada campo.
 
-Fuera de alcance por ahora: recuperar contraseña (R1.2), alta de usuarios desde la interfaz, acceso de clientes (R10), edición o baja de clientes y mascotas, reportes (R6), y facturación (R7). El estado de cada módulo está en `docs/modulos/README.md`.
+Fuera de alcance por ahora: recuperar contraseña (R1.2), alta de usuarios desde la interfaz, acceso de clientes (R10), edición o baja de clientes y mascotas y reportes (R6). El estado de cada módulo está en `docs/modulos/README.md`.

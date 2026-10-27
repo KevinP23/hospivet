@@ -37,6 +37,8 @@ Se incorpora `Consulta general`, que es el servicio visible en el formulario doc
 
 Para satisfacer los campos obligatorios del modelo de Iteración 4 se utilizan temporalmente estos valores técnicos: descripción `Consulta veterinaria general`, precio `0.00 Bs` y duración `30 minutos`. Deben confirmarse antes de usar precio o duración para facturación, agenda por intervalos o reportes.
 
+Con R07 (decisión N-03, D-17) el precio pasa a `80.00 Bs` mediante `V8__crear_facturacion.sql`, el valor del mockup de *Generar factura*; sigue siendo un precio de prueba que el responsable cambiará por el real.
+
 ## Correspondencia técnica
 
 - Migración: `V3__crear_servicios_y_citas.sql`.

@@ -68,3 +68,16 @@ Este archivo identifica correcciones documentales; no modifica los Word original
 5. Definir cuándo una promoción pasa a `FINALIZADA` o retirar ese estado del diccionario (N-05).
 6. Indicar que *Buscar promoción* se elige de las promociones registradas por código o título (N-06).
 
+## Facturación
+
+1. Agregar la interfaz del listado de facturas a la que regresa *Volver al listado* de *Revisar factura* (N-01).
+2. Indicar en *Generar factura* que repetir un ítem suma 1 a su cantidad y que el precio unitario sale del catálogo (N-02).
+3. Registrar el precio real de *Consulta general*; hoy es Bs 80,00 de prueba (N-03).
+4. Precisar en R7.3.5 qué promociones son vigentes y sobre qué ítems se aplica el porcentaje (N-04).
+5. Definir cuándo una factura pasa a `ANULADA` o `PAGADA`, o retirar esos estados del diccionario (N-05).
+6. Representar en *Editar factura* el selector de la línea del detalle (N-06).
+7. Unificar el mensaje de *Editar factura*: la alerta es "Datos inválidos" (R7.2.4, SD-18) y la regla aparece bajo el campo (N-07).
+8. Indicar en la sección 5.2 que la impresión es directa en la impresora del equipo, por la instalación local (N-08, D-16).
+9. Nombrar el proveedor de correo de SD-21 (servidor SMTP) y definir el mensaje cuando el proveedor no confirma el envío; hoy se muestra "No fue posible enviar la factura" (N-09).
+10. Indicar que *Actualizar correo* guarda el correo en el registro del cliente (N-10).
+11. Indicar que facturar no descuenta stock (N-11).
