@@ -19,7 +19,7 @@ const navigation = [
   { label: 'Inventario', path: '/inventario', enabled: true },
   { label: 'Citas', path: '/citas', enabled: true },
   { label: 'Atención médica', path: '/atencion', enabled: true },
-  { label: 'Facturación', enabled: false },
+  { label: 'Facturación', path: '/facturacion', enabled: true },
   { label: 'Reportes', enabled: false },
   { label: 'Promociones', path: '/promociones', enabled: true },
 ]
