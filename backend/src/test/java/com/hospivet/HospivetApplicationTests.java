@@ -7,6 +7,8 @@ import com.hospivet.atencion.mapper.DiagnosticoMapper;
 import com.hospivet.atencion.mapper.RecetaMapper;
 import com.hospivet.atencion.mapper.TratamientoMapper;
 import com.hospivet.auth.mapper.UsuarioMapper;
+import com.hospivet.factura.mapper.DetalleFacturaMapper;
+import com.hospivet.factura.mapper.FacturaMapper;
 import com.hospivet.promocion.mapper.PromocionMapper;
 import com.hospivet.promocion.mapper.PromocionProductoMapper;
 import com.hospivet.promocion.mapper.PromocionServicioMapper;
@@ -92,6 +94,12 @@ class HospivetApplicationTests {
     private PromocionMapper promocionMapper;
 
     @Autowired
+    private FacturaMapper facturaMapper;
+
+    @Autowired
+    private DetalleFacturaMapper detalleFacturaMapper;
+
+    @Autowired
     private PromocionServicioMapper promocionServicioMapper;
 
     @Autowired
@@ -107,6 +115,8 @@ class HospivetApplicationTests {
 
     @BeforeEach
     void prepararVeterinario() {
+        detalleFacturaMapper.delete(null);
+        facturaMapper.delete(null);
         promocionServicioMapper.delete(null);
         promocionProductoMapper.delete(null);
         promocionMapper.delete(null);
@@ -623,6 +633,136 @@ class HospivetApplicationTests {
         mockMvc.perform(get("/api/promociones").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void gestionaFacturacionSegunLaIteracion5() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content("{\"usuario\":\"veterinario\",\"contrasena\":\"clave-segura\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        org.springframework.mock.web.MockHttpSession session =
+                (org.springframework.mock.web.MockHttpSession) login.getRequest().getSession(false);
+
+        long conCorreo = objectMapper.readTree(mockMvc.perform(post("/api/clientes")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"ci\":\"4444444\",\"nombre\":\"Ana\",\"apellido\":\"Pérez\",\"telefono\":\"70000002\","
+                                + "\"correo\":\"ana@example.test\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString()).get("idCliente").asLong();
+        long sinCorreo = objectMapper.readTree(mockMvc.perform(post("/api/clientes")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"ci\":\"3333333\",\"nombre\":\"Luis\",\"apellido\":\"Rojas\",\"telefono\":\"70000003\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString()).get("idCliente").asLong();
+        long idProducto = objectMapper.readTree(mockMvc.perform(post("/api/inventario/productos")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"nombre\":\"Vacuna\",\"categoria\":\"Medicamento\",\"precio\":25.00,"
+                                + "\"cantidadInicial\":10,\"stockMinimo\":2}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString()).get("idProducto").asLong();
+        long idPromocion = objectMapper.readTree(mockMvc.perform(post("/api/promociones")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content(("{\"titulo\":\"Vacunas\",\"descripcion\":\"Descuento\",\"porcentajeDescuento\":20,"
+                                + "\"fechaInicio\":\"%s\",\"fechaFin\":\"%s\",\"idsProducto\":[%d]}")
+                                .formatted(LocalDate.now().minusDays(1), LocalDate.now().plusDays(10), idProducto)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString()).get("idPromocion").asLong();
+        mockMvc.perform(patch("/api/promociones/{id}/publicacion", idPromocion).session(session).with(csrf()))
+                .andExpect(status().isOk());
+
+        // R7.3.3: servicio o producto no encontrado.
+        mockMvc.perform(post("/api/facturas")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"idCliente\":%d,\"items\":[{\"tipo\":\"PRODUCTO\",\"id\":999999,\"cantidad\":1}]}"
+                                .formatted(conCorreo)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Servicio o producto no encontrado"));
+
+        // R7.3.4 a R7.3.6, N-02 y N-04: el mismo ítem suma cantidad y la promoción descuenta 20 % de sus ítems.
+        long idFactura = objectMapper.readTree(mockMvc.perform(post("/api/facturas")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content(("{\"idCliente\":%d,\"idPromocion\":%d,\"items\":["
+                                + "{\"tipo\":\"PRODUCTO\",\"id\":%d,\"cantidad\":1},"
+                                + "{\"tipo\":\"PRODUCTO\",\"id\":%d,\"cantidad\":1}]}")
+                                .formatted(conCorreo, idPromocion, idProducto, idProducto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.detalle[0].cantidad").value(2))
+                .andExpect(jsonPath("$.subtotal").value(50.0))
+                .andExpect(jsonPath("$.descuento").value(10.0))
+                .andExpect(jsonPath("$.total").value(40.0))
+                .andExpect(jsonPath("$.estado").value("EMITIDA"))
+                .andReturn().getResponse().getContentAsString()).get("idFactura").asLong();
+
+        // R7.1.2: factura no encontrada.
+        mockMvc.perform(get("/api/facturas/{id}", 999999).session(session))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Factura no encontrada"));
+
+        JsonNode factura = objectMapper.readTree(mockMvc.perform(get("/api/facturas/{id}", idFactura).session(session))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        long idDetalle = factura.get("detalle").get(0).get("idDetalle").asLong();
+
+        // R7.2.3 y R7.2.4: datos inválidos con el campo y la regla.
+        mockMvc.perform(put("/api/facturas/{id}", idFactura)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content(("{\"idCliente\":%d,\"fecha\":\"%s\",\"descuento\":0,\"lineas\":[{\"idDetalle\":%d,"
+                                + "\"descripcion\":\"Vacuna\",\"cantidad\":0,\"precioUnitario\":25}]}")
+                                .formatted(conCorreo, LocalDate.now(), idDetalle)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors['lineas[0].cantidad']").value("Cantidad mayor que 0"));
+        mockMvc.perform(put("/api/facturas/{id}", idFactura)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content(("{\"idCliente\":%d,\"fecha\":\"%s\",\"descuento\":999,\"lineas\":[{\"idDetalle\":%d,"
+                                + "\"descripcion\":\"Vacuna\",\"cantidad\":2,\"precioUnitario\":25}]}")
+                                .formatted(conCorreo, LocalDate.now(), idDetalle)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Datos inválidos"))
+                .andExpect(jsonPath("$.fieldErrors.descuento").value("Descuento entre 0 y el subtotal"));
+
+        // R7.2.5: guardar cambios y recalcular.
+        mockMvc.perform(put("/api/facturas/{id}", idFactura)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content(("{\"idCliente\":%d,\"fecha\":\"%s\",\"descuento\":5,\"lineas\":[{\"idDetalle\":%d,"
+                                + "\"descripcion\":\"Vacuna\",\"cantidad\":3,\"precioUnitario\":25}]}")
+                                .formatted(conCorreo, LocalDate.now(), idDetalle)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.subtotal").value(75.0))
+                .andExpect(jsonPath("$.total").value(70.0));
+
+        // R7.4.3: error de impresión.
+        mockMvc.perform(post("/api/facturas/{id}/impresion", idFactura)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"impresora\":\"Impresora inexistente\"}"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.message").value("Error de impresión, verifique la impresora"));
+
+        // R7.5.2: el cliente no tiene correo registrado.
+        long facturaSinCorreo = objectMapper.readTree(mockMvc.perform(post("/api/facturas")
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"idCliente\":%d,\"items\":[{\"tipo\":\"PRODUCTO\",\"id\":%d,\"cantidad\":1}]}"
+                                .formatted(sinCorreo, idProducto)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString()).get("idFactura").asLong();
+        mockMvc.perform(post("/api/facturas/{id}/envio", facturaSinCorreo)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"medio\":\"CORREO\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("El cliente no tiene correo registrado"));
+
+        // N-10: actualizar correo en el registro del cliente.
+        mockMvc.perform(put("/api/facturas/{id}/correo-cliente", facturaSinCorreo)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"correo\":\"luis@\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.correo").value("Correo inválido"));
+        mockMvc.perform(put("/api/facturas/{id}/correo-cliente", facturaSinCorreo)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"correo\":\"luis@example.test\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.correoCliente").value("luis@example.test"));
+
+        // Sin servidor de correo configurado, el envío no se confirma.
+        mockMvc.perform(post("/api/facturas/{id}/envio", facturaSinCorreo)
+                        .session(session).with(csrf()).contentType("application/json")
+                        .content("{\"medio\":\"CORREO\"}"))
+                .andExpect(status().isBadGateway());
     }
 
     private String CitaCode(long idCita) {
