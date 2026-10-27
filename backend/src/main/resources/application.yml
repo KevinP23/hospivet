@@ -11,6 +11,18 @@ spring:
     locations: classpath:db/migration
   jackson:
     default-property-inclusion: non_null
+  # R7.5 Enviar factura (N-09): servidor SMTP configurado con variables de entorno.
+  mail:
+    host: ${HOSPIVET_MAIL_HOST:}
+    port: ${HOSPIVET_MAIL_PORT:587}
+    username: ${HOSPIVET_MAIL_USERNAME:}
+    password: ${HOSPIVET_MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
 
 server:
   port: ${SERVER_PORT:8080}
@@ -32,6 +44,8 @@ mybatis-plus:
     banner: false
 
 hospivet:
+  mail:
+    remitente: ${HOSPIVET_MAIL_FROM:${HOSPIVET_MAIL_USERNAME:}}
   cors:
     allowed-origins: ${HOSPIVET_FRONTEND_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
   bootstrap:
