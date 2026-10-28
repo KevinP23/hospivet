@@ -6,6 +6,8 @@ import com.hospivet.auth.dto.LoginRequest;
 import com.hospivet.auth.mapper.UsuarioMapper;
 import com.hospivet.auth.model.Usuario;
 import com.hospivet.common.exception.BusinessException;
+import com.hospivet.veterinario.mapper.VeterinarioMapper;
+import com.hospivet.veterinario.model.Veterinario;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,16 +21,18 @@ import java.util.List;
 public class AuthService {
 
     private final UsuarioMapper usuarioMapper;
+    private final VeterinarioMapper veterinarioMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UsuarioMapper usuarioMapper, PasswordEncoder passwordEncoder) {
+    public AuthService(UsuarioMapper usuarioMapper, VeterinarioMapper veterinarioMapper,
+                       PasswordEncoder passwordEncoder) {
         this.usuarioMapper = usuarioMapper;
+        this.veterinarioMapper = veterinarioMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
     public AuthenticatedUser autenticar(LoginRequest request) {
-        Usuario usuario = usuarioMapper.selectOne(Wrappers.<Usuario>lambdaQuery()
-                .eq(Usuario::getNombreUsuario, request.usuario()));
+        Usuario usuario = buscarUsuario(request.usuario());
 
         if (usuario == null || !Boolean.TRUE.equals(usuario.getActivo())) {
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado");
@@ -44,11 +48,30 @@ public class AuthService {
         Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
                 usuario.getNombreUsuario(), null,
                 List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRol())));
-        return new AuthenticatedUser(authentication,
-                new AuthResponse(usuario.getIdUsuario(), usuario.getNombreUsuario(), usuario.getRol()));
+        return new AuthenticatedUser(authentication, respuesta(usuario));
+    }
+
+    /** Datos de la sesión activa; COR-02 N-02: la cabecera muestra nombre y apellido del veterinario. */
+    public AuthResponse sesion(String nombreUsuario) {
+        Usuario usuario = buscarUsuario(nombreUsuario);
+        if (usuario == null) {
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado");
+        }
+        return respuesta(usuario);
+    }
+
+    private Usuario buscarUsuario(String nombreUsuario) {
+        return usuarioMapper.selectOne(Wrappers.<Usuario>lambdaQuery()
+                .eq(Usuario::getNombreUsuario, nombreUsuario));
+    }
+
+    private AuthResponse respuesta(Usuario usuario) {
+        Veterinario veterinario = veterinarioMapper.selectById(usuario.getIdUsuario());
+        return new AuthResponse(usuario.getIdUsuario(), usuario.getNombreUsuario(), usuario.getRol(),
+                veterinario == null ? null : veterinario.getNombre(),
+                veterinario == null ? null : veterinario.getApellido());
     }
 
     public record AuthenticatedUser(Authentication authentication, AuthResponse response) {
     }
 }
-

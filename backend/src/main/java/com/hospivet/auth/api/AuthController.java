@@ -54,11 +54,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public AuthResponse me(Authentication authentication) {
-        String role = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(authority -> authority.getAuthority().replaceFirst("^ROLE_", ""))
-                .orElse("");
-        return new AuthResponse(null, authentication.getName(), role);
+        return authService.sesion(authentication.getName());
     }
 }
 
