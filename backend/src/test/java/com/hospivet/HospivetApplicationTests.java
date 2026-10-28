@@ -167,10 +167,19 @@ class HospivetApplicationTests {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.rol").value("VETERINARIO"))
+                .andExpect(jsonPath("$.nombre").value("Ana"))
+                .andExpect(jsonPath("$.apellido").value("Rojas"))
                 .andReturn();
 
         HttpSession session = login.getRequest().getSession(false);
         assertThat(session).isNotNull();
+
+        // COR-02 N-02: la sesión activa devuelve nombre y apellido para la cabecera.
+        mockMvc.perform(get("/api/auth/me").session((org.springframework.mock.web.MockHttpSession) session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.usuario").value("veterinario"))
+                .andExpect(jsonPath("$.nombre").value("Ana"))
+                .andExpect(jsonPath("$.apellido").value("Rojas"));
 
         MvcResult cliente = mockMvc.perform(post("/api/clientes")
                         .session((org.springframework.mock.web.MockHttpSession) session)
