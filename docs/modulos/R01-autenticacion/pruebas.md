@@ -43,7 +43,7 @@ Entorno: backend en `http://localhost:8080`, frontend en `http://127.0.0.1:5173/
 ### CP-R01-04 · Acceso correcto
 - **Requisito / criterio:** R1.1.6 / CA-04
 - **Pasos:** 1. Escribir usuario y contraseña correctos. 2. Presionar *Ingresar* (o Enter).
-- **Resultado esperado:** se abre *Registrar cliente*; la cabecera muestra el usuario y la navegación con los módulos habilitados.
+- **Resultado esperado:** se abre el *Menú principal* (COR-02); la cabecera muestra nombre y apellido del veterinario y la navegación con los módulos habilitados.
 - **Verificación previa:** Pendiente
 - **Revisión del responsable:** Pendiente
 - **Observaciones (funcionamiento y visual):**

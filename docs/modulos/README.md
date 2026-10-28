@@ -13,7 +13,8 @@ Estado de cada módulo según `docs/METODOLOGIA.md`. Los módulos R01 a R05 se c
 | R08 Atención médica | R8.1–R8.4 | SD-22 a SD-25 | Cerrado (2026-10-23) | [plan](R08-atencion-medica/plan.md) |
 | R09 Promociones | R9.1–R9.4 | SD-26 a SD-29 | Cerrado (2026-10-23) | [plan](R09-promociones/plan.md) |
 | R07 Facturación | R7.1–R7.5 | SD-17 a SD-21 | Cerrado (2026-10-27) | [plan](R07-facturacion/plan.md) |
-| R06 Reportes | R6.1–R6.4 | SD-13 a SD-16 | Sin plan | — |
+| COR-02 Menú principal | R1.1 · interfaz del menú principal | SD-01 | Cerrado (2026-10-27) | [plan](COR-02-menu-principal/plan.md) |
+| R06 Reportes | R6.1–R6.4 | SD-13 a SD-16 | Plan en revisión | [plan](R06-reportes/plan.md) |
 | R01 Recuperar contraseña | R1.2 | SD-02 | Sin plan | — |
 | R10 Consulta del cliente | R10.1–R10.3 | SD-30 a SD-32 | Sin plan | — |
 

@@ -21,10 +21,11 @@ Estas decisiones se aplican a la primera entrega de HOSPIVET. Los documentos Wor
 | D-15 | Promociones: puntos N-01 a N-06 del plan R09 resueltos con la opción A (listado de promociones, varios servicios y productos opcionales, "Datos inválidos" con la regla bajo el campo al editar, descuento limitado a 0–100, `FINALIZADA` sin uso y búsqueda por selector). | Decisión del responsable el 2026-10-23; detalle en `requisitos-promociones.md`. |
 | D-16 | HOSPIVET se instala en la computadora de la veterinaria (servidor, base de datos e interfaz en el mismo equipo), no como sitio web publicado. | Indicación del responsable el 2026-10-27; condiciona impresión, correo y la forma de entrega. |
 | D-17 | Facturación: puntos N-01 a N-11 del plan R07 resueltos con la opción A, salvo N-08 con la opción B (listado de facturas, cantidad que sube al repetir el ítem con precio del catálogo, *Consulta general* a Bs 80,00 como precio de prueba, promoción vigente aplicada a sus ítems, solo estado `EMITIDA`, edición por línea, "Datos inválidos" con la regla bajo el campo, impresión directa en la impresora del equipo, correo por SMTP, *Actualizar correo* sobre el registro del cliente y sin descuento de stock). | Decisión del responsable el 2026-10-27; detalle en `requisitos-facturacion.md`. |
+| D-18 | Menú principal: al iniciar sesión se abre la interfaz del menú (3.1.1 paso 6) en lugar de *Clientes*; puntos N-01 a N-03 del plan COR-02 con la opción A (*Reportes* visible y deshabilitado hasta R06, cabecera con nombre y apellido del veterinario y *Clientes y mascotas* abre *Clientes*). | Decisión del responsable el 2026-10-27; plan en `docs/modulos/COR-02-menu-principal`. |
 
 ## Alcance actual
 
-- Inicio y cierre de sesión para veterinarios (R1.1).
+- Inicio y cierre de sesión para veterinarios (R1.1), con apertura del menú principal.
 - Registro de clientes (R2.1) y de mascotas vinculadas obligatoriamente a un cliente activo (R3.1).
 - Cálculo de edad desde la fecha de nacimiento.
 - Inventario: consulta, alta, actualización de stock con movimiento de auditoría y baja lógica (R4.1–R4.4).

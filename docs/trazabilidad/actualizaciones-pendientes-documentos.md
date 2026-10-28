@@ -81,3 +81,9 @@ Este archivo identifica correcciones documentales; no modifica los Word original
 9. Nombrar el proveedor de correo de SD-21 (servidor SMTP) y definir el mensaje cuando el proveedor no confirma el envío; hoy se muestra "No fue posible enviar la factura" (N-09).
 10. Indicar que *Actualizar correo* guarda el correo en el registro del cliente (N-10).
 11. Indicar que facturar no descuenta stock (N-11).
+
+## Menú principal
+
+1. Indicar en la interfaz del menú que *Reportes* se muestra deshabilitado mientras el módulo no exista (N-01).
+2. Reemplazar "Dra. Ana Ibáñez" del mockup por el nombre y apellido del veterinario de la sesión; el sistema no guarda títulos (N-02).
+3. Indicar que *Clientes y mascotas* abre *Registrar cliente* (N-03).

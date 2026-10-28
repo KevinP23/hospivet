@@ -26,7 +26,7 @@ Permitir que el veterinario ingrese al sistema con usuario y contraseña, y mant
 | CA-01 | R1.1.1 | El formulario solicita usuario y contraseña; ambos son obligatorios. | "Ingrese el usuario" / "Ingrese la contraseña" |
 | CA-02 | R1.1.2–3 | Con un usuario inexistente o inactivo no se inicia sesión. | "Usuario no encontrado" |
 | CA-03 | R1.1.4–5 | Con contraseña incorrecta no se inicia sesión y se conservan los datos del formulario. | "Contraseña incorrecta" |
-| CA-04 | R1.1.6 | Con credenciales correctas se abre el menú principal (módulo Clientes). | — |
+| CA-04 | R1.1.6 | Con credenciales correctas se abre el menú principal (corregido en COR-02; antes abría Clientes). | — |
 | CA-05 | — | Sin sesión, cualquier ruta interna redirige al inicio de sesión. | — |
 | CA-06 | — | *Cerrar sesión* termina la sesión y vuelve al inicio de sesión. | — |
 
