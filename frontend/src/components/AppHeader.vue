@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authState, logout } from '../api/auth'
 
@@ -11,6 +12,13 @@ defineProps({
 
 const route = useRoute()
 const router = useRouter()
+
+// COR-02 N-02: nombre y apellido del veterinario; el usuario solo si faltan.
+const nombreVisible = computed(() => {
+  const user = authState.user
+  const nombre = [user?.nombre, user?.apellido].filter(Boolean).join(' ')
+  return nombre || user?.usuario || 'Veterinario'
+})
 
 const navigation = [
   { label: 'Menú principal', path: '/', enabled: true },
@@ -47,7 +55,7 @@ async function handleProfileCommand(command) {
 
       <el-dropdown v-if="authenticated" trigger="click" @command="handleProfileCommand">
         <button class="profile-pill" type="button">
-          {{ authState.user?.usuario || 'Veterinario' }} · Veterinaria
+          {{ nombreVisible }} · Veterinaria
         </button>
         <template #dropdown>
           <el-dropdown-menu>

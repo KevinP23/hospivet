@@ -27,7 +27,7 @@ async function submit() {
   loading.value = true
   try {
     await login({ ...form })
-    await router.push({ name: 'clientes' })
+    await router.push({ name: 'menu' })
   } catch (error) {
     errorMessage.value = apiMessage(error, 'No fue posible iniciar sesión')
     fieldErrors.value = apiFieldErrors(error)

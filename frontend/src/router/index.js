@@ -9,6 +9,7 @@ import CitasView from '../views/citas/CitasView.vue'
 import AtencionView from '../views/atencion/AtencionView.vue'
 import PromocionesView from '../views/promociones/PromocionesView.vue'
 import FacturacionView from '../views/facturacion/FacturacionView.vue'
+import MenuPrincipalView from '../views/menu/MenuPrincipalView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -19,7 +20,7 @@ const router = createRouter({
       component: MainLayout,
       meta: { requiresAuth: true },
       children: [
-        { path: '', redirect: '/clientes' },
+        { path: '', name: 'menu', component: MenuPrincipalView },
         { path: 'clientes', name: 'clientes', component: ClientesView },
         { path: 'mascotas', name: 'mascotas', component: MascotasView },
         { path: 'inventario', name: 'inventario', component: InventarioView },
@@ -40,7 +41,7 @@ router.beforeEach(async (to) => {
     return { name: 'login' }
   }
   if (to.name === 'login' && authState.user) {
-    return { name: 'clientes' }
+    return { name: 'menu' }
   }
   return true
 })
