@@ -774,6 +774,209 @@ class HospivetApplicationTests {
                 .andExpect(status().isBadGateway());
     }
 
+    @Test
+    void generaReportesSegunLaIteracion5SinModificarDatos() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content("{\"usuario\":\"veterinario\",\"contrasena\":\"clave-segura\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        org.springframework.mock.web.MockHttpSession session =
+                (org.springframework.mock.web.MockHttpSession) login.getRequest().getSession(false);
+
+        // R6.1.4, R6.2.4, R6.3.4 y R6.4.4: sin datos, listas vacías (la interfaz muestra el mensaje).
+        mockMvc.perform(get("/api/reportes/inventario").session(session))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        mockMvc.perform(get("/api/reportes/productos").session(session))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        mockMvc.perform(get("/api/reportes/ingresos?desde=2026-09-01&hasta=2026-09-30").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.filas.length()").value(0))
+                .andExpect(jsonPath("$.total").value(0.0));
+        mockMvc.perform(get("/api/reportes/servicios?desde=2026-09-01&hasta=2026-09-30").session(session))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+
+        Long idVeterinario = veterinarioMapper.selectList(null).get(0).getIdVeterinario();
+        Long amoxicilina = productoReporte("Amoxicilina 250 mg", "Medicamento", "25.00", 42, 5, true);
+        productoReporte("Champú antipulgas", "Higiene", "45.00", 5, 5, true);
+        productoReporte("Jeringa 5 ml", "Insumo", "2.00", 0, 10, true);
+        productoReporte("Producto retirado", "Medicamento", "10.00", 3, 1, false);
+
+        // SD-13: solo productos activos (N-07); Valor en Bs = stock actual × precio, como el mockup.
+        mockMvc.perform(get("/api/reportes/inventario").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].producto").value("Amoxicilina 250 mg"))
+                .andExpect(jsonPath("$[0].stockActual").value(42))
+                .andExpect(jsonPath("$[0].stockMinimo").value(5))
+                .andExpect(jsonPath("$[0].valor").value(1050.0))
+                .andExpect(jsonPath("$[1].valor").value(225.0));
+
+        // SD-16 y N-05: estados Disponible (stock > 0) y Agotado (stock 0); vacío o TODOS no filtran.
+        mockMvc.perform(get("/api/reportes/productos?categoria=&estado=TODOS").session(session))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3));
+        mockMvc.perform(get("/api/reportes/productos?estado=AGOTADO").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].producto").value("Jeringa 5 ml"))
+                .andExpect(jsonPath("$[0].estado").value("AGOTADO"));
+        mockMvc.perform(get("/api/reportes/productos?categoria=Medicamento&estado=DISPONIBLE").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].stock").value(42));
+        mockMvc.perform(get("/api/reportes/productos?categoria=Higiene&estado=AGOTADO").session(session))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        mockMvc.perform(get("/api/reportes/productos?estado=VENCIDO").session(session))
+                .andExpect(status().isBadRequest());
+
+        // SD-14: facturas del periodo (sin las ANULADA, N-08), concepto con las líneas (N-04) y total.
+        Long ana = clienteReporte("5000001", "Ana", "Pérez");
+        Long carlos = clienteReporte("5000002", "Carlos", "Rojas");
+        Long vacunacion = servicioReporte("Vacunación", "120.00");
+        com.hospivet.servicio.model.Servicio consulta = servicioMapper.selectById(servicioInicialId);
+        consulta.setPrecio(new BigDecimal("80.00"));
+        servicioMapper.updateById(consulta);
+
+        Long factura1 = facturaReporte(ana, idVeterinario, LocalDateTime.of(2026, 9, 10, 9, 30), "180.00", "EMITIDA");
+        lineaServicioReporte(factura1, servicioInicialId, "Consulta general", "80.00");
+        lineaServicioReporte(factura1, vacunacion, "Vacuna", "100.00");
+        Long factura2 = facturaReporte(carlos, idVeterinario, LocalDateTime.of(2026, 9, 15, 16, 0), "650.00", "EMITIDA");
+        lineaServicioReporte(factura2, servicioInicialId, "Cirugía menor", "650.00");
+        Long anulada = facturaReporte(ana, idVeterinario, LocalDateTime.of(2026, 9, 20, 10, 0), "999.00", "ANULADA");
+        lineaServicioReporte(anulada, servicioInicialId, "Anulada", "999.00");
+        Long fueraDelPeriodo = facturaReporte(ana, idVeterinario, LocalDateTime.of(2026, 10, 1, 0, 0), "100.00", "EMITIDA");
+        lineaServicioReporte(fueraDelPeriodo, servicioInicialId, "Octubre", "100.00");
+
+        mockMvc.perform(get("/api/reportes/ingresos?desde=2026-09-01&hasta=2026-09-30").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.filas.length()").value(2))
+                .andExpect(jsonPath("$.filas[0].fecha").value("2026-09-10"))
+                .andExpect(jsonPath("$.filas[0].cliente").value("Ana Pérez"))
+                .andExpect(jsonPath("$.filas[0].concepto").value("Consulta general, Vacuna"))
+                .andExpect(jsonPath("$.filas[0].monto").value(180.0))
+                .andExpect(jsonPath("$.filas[1].cliente").value("Carlos Rojas"))
+                .andExpect(jsonPath("$.total").value(830.0));
+
+        // Precondición de 3.1.14 y 3.1.15: rango de fechas válido (la interfaz no permite otro, N-06).
+        mockMvc.perform(get("/api/reportes/ingresos?desde=2026-09-30&hasta=2026-09-01").session(session))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.hasta").exists());
+        mockMvc.perform(get("/api/reportes/servicios?hasta=2026-09-30").session(session))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.desde").exists());
+
+        // SD-15 y N-03: citas ATENDIDAS del periodo por servicio; ingreso = cantidad × precio del catálogo.
+        Long mascota = mascotaReporte(ana);
+        citaReporte(ana, mascota, idVeterinario, servicioInicialId, LocalDateTime.of(2026, 9, 2, 9, 0), "ATENDIDA");
+        citaReporte(ana, mascota, idVeterinario, servicioInicialId, LocalDateTime.of(2026, 9, 9, 9, 0), "ATENDIDA");
+        citaReporte(ana, mascota, idVeterinario, servicioInicialId, LocalDateTime.of(2026, 9, 30, 18, 0), "ATENDIDA");
+        citaReporte(ana, mascota, idVeterinario, vacunacion, LocalDateTime.of(2026, 9, 16, 10, 0), "ATENDIDA");
+        citaReporte(ana, mascota, idVeterinario, vacunacion, LocalDateTime.of(2026, 9, 17, 10, 0), "PROGRAMADA");
+        citaReporte(ana, mascota, idVeterinario, vacunacion, LocalDateTime.of(2026, 9, 18, 10, 0), "CANCELADA");
+        citaReporte(ana, mascota, idVeterinario, servicioInicialId, LocalDateTime.of(2026, 10, 1, 9, 0), "ATENDIDA");
+
+        mockMvc.perform(get("/api/reportes/servicios?desde=2026-09-01&hasta=2026-09-30").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].servicio").value("Consulta general"))
+                .andExpect(jsonPath("$[0].cantidad").value(3))
+                .andExpect(jsonPath("$[0].ingreso").value(240.0))
+                .andExpect(jsonPath("$[1].servicio").value("Vacunación"))
+                .andExpect(jsonPath("$[1].cantidad").value(1))
+                .andExpect(jsonPath("$[1].ingreso").value(120.0));
+
+        // Postcondiciones de 3.1.13 a 3.1.16: los reportes no alteran los registros.
+        assertThat(productoMapper.selectById(amoxicilina).getStockActual()).isEqualTo(42L);
+        assertThat(facturaMapper.selectById(factura1).getTotal()).isEqualByComparingTo("180.00");
+        assertThat(citaMapper.selectCount(null)).isEqualTo(7L);
+
+        // Sin sesión no hay acceso a los reportes.
+        mockMvc.perform(get("/api/reportes/inventario")).andExpect(status().isUnauthorized());
+    }
+
+    private Long productoReporte(String nombre, String categoria, String precio, long stock, long minimo, boolean activo) {
+        com.hospivet.inventario.model.Producto producto = new com.hospivet.inventario.model.Producto();
+        producto.setNombre(nombre);
+        producto.setCategoria(categoria);
+        producto.setPrecio(new BigDecimal(precio));
+        producto.setStockActual(stock);
+        producto.setStockMinimo(minimo);
+        producto.setActivo(activo);
+        productoMapper.insert(producto);
+        return producto.getIdProducto();
+    }
+
+    private Long clienteReporte(String ci, String nombre, String apellido) {
+        com.hospivet.cliente.model.Cliente cliente = new com.hospivet.cliente.model.Cliente();
+        cliente.setCi(ci);
+        cliente.setNombre(nombre);
+        cliente.setApellido(apellido);
+        cliente.setTelefono("70000000");
+        cliente.setActivo(true);
+        clienteMapper.insert(cliente);
+        return cliente.getIdCliente();
+    }
+
+    private Long servicioReporte(String nombre, String precio) {
+        Servicio servicio = new Servicio();
+        servicio.setNombre(nombre);
+        servicio.setDescripcion(nombre);
+        servicio.setPrecio(new BigDecimal(precio));
+        servicio.setDuracionMin(20);
+        servicio.setActivo(true);
+        servicioMapper.insert(servicio);
+        return servicio.getIdServicio();
+    }
+
+    private Long facturaReporte(Long idCliente, Long idVeterinario, LocalDateTime fecha, String total, String estado) {
+        com.hospivet.factura.model.Factura factura = new com.hospivet.factura.model.Factura();
+        factura.setIdCliente(idCliente);
+        factura.setIdVeterinario(idVeterinario);
+        factura.setFechaHora(fecha);
+        factura.setSubtotal(new BigDecimal(total));
+        factura.setDescuento(BigDecimal.ZERO);
+        factura.setTotal(new BigDecimal(total));
+        factura.setEstado(estado);
+        facturaMapper.insert(factura);
+        return factura.getIdFactura();
+    }
+
+    private void lineaServicioReporte(Long idFactura, Long idServicio, String descripcion, String precio) {
+        com.hospivet.factura.model.DetalleFactura linea = new com.hospivet.factura.model.DetalleFactura();
+        linea.setIdFactura(idFactura);
+        linea.setIdServicio(idServicio);
+        linea.setDescripcion(descripcion);
+        linea.setCantidad(1L);
+        linea.setPrecioUnitario(new BigDecimal(precio));
+        linea.setSubtotal(new BigDecimal(precio));
+        linea.setTipoItem("SERVICIO");
+        detalleFacturaMapper.insert(linea);
+    }
+
+    private Long mascotaReporte(Long idCliente) {
+        com.hospivet.mascota.model.Mascota mascota = new com.hospivet.mascota.model.Mascota();
+        mascota.setIdCliente(idCliente);
+        mascota.setNombre("Toby");
+        mascota.setEspecie("Perro");
+        mascota.setPeso(new BigDecimal("12.40"));
+        mascota.setActivo(true);
+        mascotaMapper.insert(mascota);
+        return mascota.getIdMascota();
+    }
+
+    private void citaReporte(Long idCliente, Long idMascota, Long idVeterinario, Long idServicio,
+                             LocalDateTime fecha, String estado) {
+        com.hospivet.cita.model.Cita cita = new com.hospivet.cita.model.Cita();
+        cita.setIdCliente(idCliente);
+        cita.setIdMascota(idMascota);
+        cita.setIdVeterinario(idVeterinario);
+        cita.setIdServicio(idServicio);
+        cita.setFechaHora(fecha);
+        cita.setEstado(estado);
+        cita.setMotivo("Control");
+        citaMapper.insert(cita);
+    }
+
     private String CitaCode(long idCita) {
         return "CITA-%05d".formatted(idCita);
     }
