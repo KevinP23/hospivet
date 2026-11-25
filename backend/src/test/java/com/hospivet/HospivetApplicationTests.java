@@ -237,7 +237,13 @@ class HospivetApplicationTests {
                 .andExpect(jsonPath("$.message").value("Contraseña incorrecta"))
                 .andReturn();
 
-        assertThat(result.getRequest().getSession(false)).isNull();
+        // Sin sesión autenticada: no se guarda el contexto de seguridad. Se revisa el contexto y no la existencia
+        // de la sesión porque csrf() de spring-security-test cambia el repositorio CSRF a uno basado en sesión
+        // para el resto de la ejecución, y entonces el resultado dependería del orden de las pruebas.
+        HttpSession session = result.getRequest().getSession(false);
+        assertThat(session == null ? null : session.getAttribute(
+                org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY))
+                .isNull();
     }
 
     @Test
@@ -892,6 +898,88 @@ class HospivetApplicationTests {
 
         // Sin sesión no hay acceso a los reportes.
         mockMvc.perform(get("/api/reportes/inventario")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void recuperaLaContrasenaSegunLaIteracion5() throws Exception {
+        // R1.2.3: los datos no corresponden a ningún usuario.
+        mockMvc.perform(post("/api/auth/recuperacion").with(csrf()).contentType("application/json")
+                        .content("{\"identidad\":\"vet.desconocido\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Usuario no registrado"));
+
+        Veterinario veterinario = veterinarioMapper.selectList(null).get(0);
+        veterinario.setCorreo("ana.rojas@example.test");
+        veterinarioMapper.updateById(veterinario);
+
+        // N-01: el correo se reconoce sin distinguir mayúsculas. N-03: sin servidor de correo no se completa.
+        mockMvc.perform(post("/api/auth/recuperacion").with(csrf()).contentType("application/json")
+                        .content("{\"identidad\":\"Ana.Rojas@Example.TEST\"}"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.message").value("No fue posible completar la operación"));
+        iniciarSesion("veterinario", "clave-segura").andExpect(status().isOk());
+
+        org.springframework.transaction.support.TransactionTemplate transaccion =
+                new org.springframework.transaction.support.TransactionTemplate(transactionManager);
+
+        // Postcondición de 3.1.2 y N-03: si el correo falla, la transacción se deshace y la clave no cambia.
+        org.springframework.mail.javamail.JavaMailSender falla =
+                org.mockito.Mockito.mock(org.springframework.mail.javamail.JavaMailSender.class);
+        org.mockito.Mockito.when(falla.createMimeMessage())
+                .thenReturn(new jakarta.mail.internet.MimeMessage((jakarta.mail.Session) null));
+        org.mockito.Mockito.doThrow(new org.springframework.mail.MailSendException("Sin conexión"))
+                .when(falla).send(org.mockito.ArgumentMatchers.any(jakarta.mail.internet.MimeMessage.class));
+        com.hospivet.auth.service.RecuperacionService conFalla = recuperacionCon(falla);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                        transaccion.executeWithoutResult(estado -> conFalla.recuperarContrasena("veterinario")))
+                .hasMessage("No fue posible completar la operación");
+        iniciarSesion("veterinario", "clave-segura").andExpect(status().isOk());
+
+        // R1.2.4 y SD-02: genera la contraseña temporal, la envía al correo registrado y reemplaza a la anterior.
+        org.springframework.mail.javamail.JavaMailSender correo =
+                org.mockito.Mockito.mock(org.springframework.mail.javamail.JavaMailSender.class);
+        org.mockito.Mockito.when(correo.createMimeMessage())
+                .thenReturn(new jakarta.mail.internet.MimeMessage((jakarta.mail.Session) null));
+        com.hospivet.auth.service.RecuperacionService recuperacion = recuperacionCon(correo);
+        assertThat(transaccion.execute(estado -> recuperacion.recuperarContrasena("veterinario")).mensaje())
+                .isEqualTo("Recuperación solicitada");
+
+        org.mockito.ArgumentCaptor<jakarta.mail.internet.MimeMessage> enviado =
+                org.mockito.ArgumentCaptor.forClass(jakarta.mail.internet.MimeMessage.class);
+        org.mockito.Mockito.verify(correo).send(enviado.capture());
+        jakarta.mail.internet.MimeMessage mensaje = enviado.getValue();
+        assertThat(mensaje.getAllRecipients()[0].toString()).isEqualTo("ana.rojas@example.test");
+        assertThat(mensaje.getSubject()).isEqualTo("HOSPIVET · Contraseña temporal");
+        java.util.regex.Matcher temporal = java.util.regex.Pattern.compile("Contraseña temporal: (\\S+)")
+                .matcher((String) mensaje.getContent());
+        assertThat(temporal.find()).isTrue();
+        assertThat(temporal.group(1)).hasSize(10);
+
+        iniciarSesion("veterinario", "clave-segura")
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Contraseña incorrecta"));
+        iniciarSesion("veterinario", temporal.group(1)).andExpect(status().isOk());
+    }
+
+    @Autowired
+    private org.springframework.transaction.PlatformTransactionManager transactionManager;
+
+    private org.springframework.test.web.servlet.ResultActions iniciarSesion(String usuario, String contrasena)
+            throws Exception {
+        return mockMvc.perform(post("/api/auth/login")
+                .contentType("application/json")
+                .content("{\"usuario\":\"%s\",\"contrasena\":\"%s\"}".formatted(usuario, contrasena)));
+    }
+
+    /** RecuperacionService con un servidor de correo simulado y un remitente de prueba. */
+    private com.hospivet.auth.service.RecuperacionService recuperacionCon(
+            org.springframework.mail.javamail.JavaMailSender sender) {
+        org.springframework.beans.factory.support.StaticListableBeanFactory beans =
+                new org.springframework.beans.factory.support.StaticListableBeanFactory(
+                        java.util.Map.of("mailSender", sender));
+        return new com.hospivet.auth.service.RecuperacionService(usuarioMapper, veterinarioMapper, passwordEncoder,
+                beans.getBeanProvider(org.springframework.mail.javamail.JavaMailSender.class),
+                "hospivet@example.test");
     }
 
     private Long productoReporte(String nombre, String categoria, String precio, long stock, long minimo, boolean activo) {
