@@ -87,3 +87,14 @@ Este archivo identifica correcciones documentales; no modifica los Word original
 1. Indicar en la interfaz del menú que *Reportes* se muestra deshabilitado mientras el módulo no exista (N-01).
 2. Reemplazar "Dra. Ana Ibáñez" del mockup por el nombre y apellido del veterinario de la sesión; el sistema no guarda títulos (N-02).
 3. Indicar que *Clientes y mascotas* abre *Registrar cliente* (N-03).
+
+## Reportes
+
+1. Indicar que el campo *Tipo de reporte* del reporte de inventario es el que lleva a los otros tres reportes, y que estos se dejan con *Reportes* en la navegación (N-01).
+2. Indicar que los reportes muestran los datos de toda la veterinaria (N-02).
+3. Precisar en R6.3 que el ingreso de cada servicio es la cantidad de citas atendidas por el precio del catálogo (N-03).
+4. Definir el contenido de la columna *Concepto* del reporte de ingresos: las descripciones de las líneas de la factura (N-04).
+5. Indicar que los estados del reporte de productos son *Disponible* (stock mayor que 0) y *Agotado* (stock 0) (N-05).
+6. Indicar que el periodo empieza con el mes actual y no admite fechas vacías ni un rango invertido (N-06).
+7. Indicar que los reportes de inventario y productos solo incluyen productos activos (N-07) y que las facturas `ANULADA` no cuentan como ingreso (N-08).
+8. En el menú principal, retirar la nota de *Reportes* deshabilitado (COR-02 N-01): el módulo ya existe.

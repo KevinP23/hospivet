@@ -22,6 +22,7 @@ Estas decisiones se aplican a la primera entrega de HOSPIVET. Los documentos Wor
 | D-16 | HOSPIVET se instala en la computadora de la veterinaria (servidor, base de datos e interfaz en el mismo equipo), no como sitio web publicado. | Indicación del responsable el 2026-10-27; condiciona impresión, correo y la forma de entrega. |
 | D-17 | Facturación: puntos N-01 a N-11 del plan R07 resueltos con la opción A, salvo N-08 con la opción B (listado de facturas, cantidad que sube al repetir el ítem con precio del catálogo, *Consulta general* a Bs 80,00 como precio de prueba, promoción vigente aplicada a sus ítems, solo estado `EMITIDA`, edición por línea, "Datos inválidos" con la regla bajo el campo, impresión directa en la impresora del equipo, correo por SMTP, *Actualizar correo* sobre el registro del cliente y sin descuento de stock). | Decisión del responsable el 2026-10-27; detalle en `requisitos-facturacion.md`. |
 | D-18 | Menú principal: al iniciar sesión se abre la interfaz del menú (3.1.1 paso 6) en lugar de *Clientes*; puntos N-01 a N-03 del plan COR-02 con la opción A (*Reportes* visible y deshabilitado hasta R06, cabecera con nombre y apellido del veterinario y *Clientes y mascotas* abre *Clientes*). | Decisión del responsable el 2026-10-27; plan en `docs/modulos/COR-02-menu-principal`. |
+| D-19 | Reportes: puntos N-01 a N-08 del plan R06 resueltos sin agregar nada a las pantallas, por indicación del docente (N-01 B, N-02 A, N-03 A, N-04 A, N-05 B, N-06 C, N-07 A, N-08 A): *Tipo de reporte* solo en el reporte de inventario, datos de toda la veterinaria, ingreso de servicios = citas atendidas × precio del catálogo, concepto con las líneas de la factura, estados *Disponible* y *Agotado*, periodo que no puede quedar inválido, solo productos activos y facturas no anuladas. | Decisión del responsable el 2026-11-24; detalle en `requisitos-reportes.md`. |
 
 ## Alcance actual
 
@@ -33,6 +34,7 @@ Estas decisiones se aplican a la primera entrega de HOSPIVET. Los documentos Wor
 - Atención médica: consultar historial, registrar diagnóstico, tratamiento y receta (R8.1–R8.4).
 - Promociones: crear, editar, publicar y eliminar (R9.1–R9.4).
 - Facturación: revisar, editar, generar, imprimir y enviar facturas (R7.1–R7.5).
+- Reportes de inventario, ingresos, servicios y productos (R6.1–R6.4), solo de consulta.
 - Validaciones tanto en frontend como en backend, con errores asociados a cada campo.
 
-Fuera de alcance por ahora: recuperar contraseña (R1.2), alta de usuarios desde la interfaz, acceso de clientes (R10), edición o baja de clientes y mascotas y reportes (R6). El estado de cada módulo está en `docs/modulos/README.md`.
+Fuera de alcance por ahora: recuperar contraseña (R1.2), alta de usuarios desde la interfaz, acceso de clientes (R10), y edición o baja de clientes y mascotas. El estado de cada módulo está en `docs/modulos/README.md`.

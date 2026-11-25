@@ -1,6 +1,6 @@
 # HOSPIVET
 
-Base funcional para inicio de sesión de veterinarios, registro de clientes, registro de mascotas vinculadas a su propietario, gestión de inventario y citas.
+Base funcional para inicio de sesión de veterinarios, registro de clientes, registro de mascotas vinculadas a su propietario, gestión de inventario, citas, atención médica, promociones, facturación y reportes.
 
 ## Estructura
 
@@ -122,5 +122,9 @@ Consulte `docs/trazabilidad` para la correspondencia con las iteraciones 4 y 5 y
 - Registro de mascotas vinculadas a su propietario.
 - Inventario: consulta y filtros, alta de productos, actualización de stock con movimiento de auditoría y eliminación lógica con confirmación.
 - Citas: registro, modificación, cancelación por estado y consulta por fecha para el veterinario autenticado.
+- Atención médica: historial, diagnósticos, tratamientos y recetas.
+- Promociones: crear, editar, publicar y eliminar.
+- Facturación: revisar, editar, generar, imprimir y enviar facturas por correo.
+- Reportes: inventario, ingresos, servicios y productos (solo consulta).
 
 El catálogo inicial contiene `Consulta general`. Su precio `0.00 Bs` y duración de `30 minutos` son valores provisionales registrados en `docs/trazabilidad/requisitos-citas.md`; deben confirmarse antes de usarlos en facturación o planificación por duración.

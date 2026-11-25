@@ -35,4 +35,4 @@ Fuente visual revisada: `Iteracion5_Hospivet_integrada.docx`. El documento Word 
 
 ## Elementos fuera del alcance
 
-Reportes aparece en la navegación y en el menú principal para conservar el diseño, pero permanece deshabilitado y no constituye un módulo implementado. El menú principal (interfaz de navegación de 3.1.1) está implementado según COR-02. Inventario, citas, atención médica, promociones y facturación ya están implementados; su correspondencia con las interfaces está en `requisitos-inventario.md`, `requisitos-citas.md`, `requisitos-facturacion.md` y en los planes de `docs/modulos`.
+El menú principal (interfaz de navegación de 3.1.1) está implementado según COR-02. Inventario, citas, atención médica, promociones, facturación y reportes ya están implementados; *Reportes* quedó habilitado en la navegación y en el menú al construir R06. Su correspondencia con las interfaces está en `requisitos-inventario.md`, `requisitos-citas.md`, `requisitos-facturacion.md`, `requisitos-reportes.md` y en los planes de `docs/modulos`.
