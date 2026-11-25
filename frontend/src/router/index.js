@@ -10,6 +10,7 @@ import AtencionView from '../views/atencion/AtencionView.vue'
 import PromocionesView from '../views/promociones/PromocionesView.vue'
 import FacturacionView from '../views/facturacion/FacturacionView.vue'
 import MenuPrincipalView from '../views/menu/MenuPrincipalView.vue'
+import ReportesView from '../views/reportes/ReportesView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -28,6 +29,11 @@ const router = createRouter({
         { path: 'atencion', name: 'atencion', component: AtencionView },
         { path: 'promociones', name: 'promociones', component: PromocionesView },
         { path: 'facturacion', name: 'facturacion', component: FacturacionView },
+        // R06: Reportes abre el reporte de inventario; su campo Tipo de reporte lleva a los demás (N-01 B).
+        { path: 'reportes', name: 'reportes', component: ReportesView, meta: { reporte: 'inventario' } },
+        { path: 'reportes/ingresos', name: 'reportes-ingresos', component: ReportesView, meta: { reporte: 'ingresos' } },
+        { path: 'reportes/servicios', name: 'reportes-servicios', component: ReportesView, meta: { reporte: 'servicios' } },
+        { path: 'reportes/productos', name: 'reportes-productos', component: ReportesView, meta: { reporte: 'productos' } },
       ],
     },
   ],

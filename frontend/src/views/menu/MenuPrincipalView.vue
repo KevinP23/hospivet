@@ -7,8 +7,8 @@ const accesos = [
   { titulo: 'Atención médica', descripcion: 'Historial, diagnósticos, tratamientos y recetas', path: '/atencion' },
   { titulo: 'Inventario', descripcion: 'Productos, existencias y movimientos', path: '/inventario' },
   { titulo: 'Facturación', descripcion: 'Revisar, editar, generar, imprimir y enviar', path: '/facturacion' },
-  // N-01: visible y deshabilitado hasta construir R06, igual que en la navegación.
-  { titulo: 'Reportes', descripcion: 'Inventario, ingresos, servicios y productos', path: null },
+  // COR-02 N-01: se habilita al construir R06.
+  { titulo: 'Reportes', descripcion: 'Inventario, ingresos, servicios y productos', path: '/reportes' },
   { titulo: 'Promociones', descripcion: 'Crear, editar, publicar y eliminar', path: '/promociones' },
 ]
 </script>

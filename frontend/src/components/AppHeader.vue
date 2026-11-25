@@ -28,7 +28,7 @@ const navigation = [
   { label: 'Citas', path: '/citas', enabled: true },
   { label: 'Atención médica', path: '/atencion', enabled: true },
   { label: 'Facturación', path: '/facturacion', enabled: true },
-  { label: 'Reportes', enabled: false },
+  { label: 'Reportes', path: '/reportes', enabled: true },
   { label: 'Promociones', path: '/promociones', enabled: true },
 ]
 
