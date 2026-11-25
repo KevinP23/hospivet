@@ -98,3 +98,11 @@ Este archivo identifica correcciones documentales; no modifica los Word original
 6. Indicar que el periodo empieza con el mes actual y no admite fechas vacías ni un rango invertido (N-06).
 7. Indicar que los reportes de inventario y productos solo incluyen productos activos (N-07) y que las facturas `ANULADA` no cuentan como ingreso (N-08).
 8. En el menú principal, retirar la nota de *Reportes* deshabilitado (COR-02 N-01): el módulo ya existe.
+
+## Recuperar contraseña
+
+1. Precisar en R1.2.2 que la identidad se verifica por nombre de usuario o por correo del veterinario, solo para cuentas veterinarias activas (N-01).
+2. Aclarar que la contraseña "temporal" reemplaza a la anterior y no vence, porque no existe un caso de uso para cambiarla (N-02).
+3. Definir el mensaje cuando la contraseña temporal no se puede enviar; hoy se muestra la alerta general "No fue posible completar la operación" y no se cambia la contraseña (N-03).
+4. Representar en la interfaz el estado correcto "Recuperación solicitada" (N-04) e indicar que el botón no actúa con el campo vacío (N-05).
+5. Indicar cómo se registra el correo del veterinario: hoy solo al crear la cuenta inicial (`HOSPIVET_BOOTSTRAP_CORREO`), porque no hay una pantalla para editar veterinarios.

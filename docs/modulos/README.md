@@ -15,7 +15,7 @@ Estado de cada módulo según `docs/METODOLOGIA.md`. Los módulos R01 a R05 se c
 | R07 Facturación | R7.1–R7.5 | SD-17 a SD-21 | Cerrado (2026-10-27) | [plan](R07-facturacion/plan.md) |
 | COR-02 Menú principal | R1.1 · interfaz del menú principal | SD-01 | Cerrado (2026-10-27) | [plan](COR-02-menu-principal/plan.md) |
 | R06 Reportes | R6.1–R6.4 | SD-13 a SD-16 | Cerrado (2026-11-24) | [plan](R06-reportes/plan.md) |
-| R01 Recuperar contraseña | R1.2 | SD-02 | Sin plan | — |
+| R01 Recuperar contraseña | R1.2 | SD-02 | Cerrado (2026-11-25) | [plan](R01-recuperar-contrasena/plan.md) |
 | R10 Consulta del cliente | R10.1–R10.3 | SD-30 a SD-32 | Sin plan | — |
 
 ## Orden propuesto para los módulos nuevos

@@ -15,7 +15,7 @@ Fuente visual revisada: `Iteracion5_Hospivet_integrada.docx`. El documento Word 
 - Campos: usuario y contraseña.
 - Acción: `Ingresar`.
 - Estados contemplados: `Usuario no encontrado`, `Contraseña incorrecta` y campos obligatorios.
-- La recuperación de contraseña se conserva solo como referencia visual; no es interactiva porque no pertenece a la primera entrega.
+- "Recuperar contraseña" abre la interfaz *Recuperar contraseña* (R1.2), implementada según `requisitos-recuperar-contrasena.md`.
 - El perfil mostrado proviene de la sesión real y no del nombre ficticio utilizado en el mockup.
 
 ## Registro de cliente

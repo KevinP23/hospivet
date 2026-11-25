@@ -2,10 +2,10 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | Implementado (retroactivo) · En revisión — R1.1 · Sin plan — R1.2 |
+| Estado | Implementado (retroactivo) · En revisión — R1.1 · R1.2 en su propio plan (`R01-recuperar-contrasena`) |
 | Versión | 1 |
 | Fecha | 2026-10-21 |
-| Requisitos | R1.1, R1.1.1–6 (implementado) · R1.2, R1.2.1–4 (pendiente) |
+| Requisitos | R1.1, R1.1.1–6 (implementado) · R1.2, R1.2.1–4 (ver `R01-recuperar-contrasena`) |
 | Casos de uso y secuencias | 3.1.1 Iniciar sesión — SD-01 · 3.1.2 Recuperar contraseña — SD-02 |
 | Depende de | Tablas `usuario` y `veterinario` |
 
@@ -65,4 +65,4 @@ Clases: `AuthController`, `AuthService`, `LoginRequest`, `AuthResponse`, `Usuari
 
 ## 7. Riesgos y preguntas abiertas
 
-- R1.2 necesita definir cómo se enviará la contraseña temporal (servidor de correo); se planificará como módulo propio.
+- R1.2 se planificó e implementó como módulo propio en `R01-recuperar-contrasena` (2026-11-24), con el correo SMTP de R07.
