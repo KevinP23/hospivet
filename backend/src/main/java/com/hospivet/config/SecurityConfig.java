@@ -38,7 +38,7 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(csrfHandler)
                         .ignoringRequestMatchers("/api/auth/login"))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/csrf", "/api/health").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/csrf", "/api/auth/recuperacion", "/api/health").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/clientes/**", "/api/mascotas/**", "/api/inventario/**",
                                 "/api/servicios/**", "/api/citas/**", "/api/atenciones/**", "/api/diagnosticos/**",

@@ -2,7 +2,10 @@ package com.hospivet.auth.api;
 
 import com.hospivet.auth.dto.AuthResponse;
 import com.hospivet.auth.dto.LoginRequest;
+import com.hospivet.auth.dto.RecuperacionRequest;
+import com.hospivet.auth.dto.RecuperacionResponse;
 import com.hospivet.auth.service.AuthService;
+import com.hospivet.auth.service.RecuperacionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -24,11 +27,13 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final RecuperacionService recuperacionService;
     private final SecurityContextRepository securityContextRepository;
 
-    public AuthController(AuthService authService,
+    public AuthController(AuthService authService, RecuperacionService recuperacionService,
                           SecurityContextRepository securityContextRepository) {
         this.authService = authService;
+        this.recuperacionService = recuperacionService;
         this.securityContextRepository = securityContextRepository;
     }
 
@@ -55,6 +60,12 @@ public class AuthController {
     @GetMapping("/me")
     public AuthResponse me(Authentication authentication) {
         return authService.sesion(authentication.getName());
+    }
+
+    /** SD-02 recuperarContrasena(identidad): 3.1.2 Recuperar contraseña (R1.2). */
+    @PostMapping("/recuperacion")
+    public RecuperacionResponse recuperarContrasena(@Valid @RequestBody RecuperacionRequest request) {
+        return recuperacionService.recuperarContrasena(request.identidad());
     }
 }
 
