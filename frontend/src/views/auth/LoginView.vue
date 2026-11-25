@@ -71,9 +71,26 @@ async function submit() {
           </el-form-item>
           <el-button type="primary" native-type="submit" :loading="loading">Ingresar</el-button>
         </el-form>
-        <p class="password-recovery">¿Olvidaste tu contraseña? <span>Recuperar contraseña</span></p>
+        <p class="password-recovery">
+          ¿Olvidaste tu contraseña?
+          <router-link :to="{ name: 'recuperar-contrasena' }" class="recovery-link">Recuperar contraseña</router-link>
+        </p>
       </section>
     </main>
   </div>
 </template>
+
+<style scoped>
+/* R1.2: el texto del mockup pasa a ser el enlace a Recuperar contraseña, con el mismo aspecto. */
+.recovery-link {
+  color: inherit;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.recovery-link:hover,
+.recovery-link:focus-visible {
+  text-decoration: underline;
+}
+</style>
 

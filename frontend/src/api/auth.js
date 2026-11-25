@@ -13,6 +13,13 @@ export async function login(credentials) {
   return data
 }
 
+// SD-02 recuperarContrasena(identidad): R1.2 Recuperar contraseña.
+export async function recuperarContrasena(identidad) {
+  await prepareCsrf()
+  const { data } = await http.post('/auth/recuperacion', { identidad })
+  return data
+}
+
 export async function refreshSession() {
   try {
     const { data } = await http.get('/auth/me')

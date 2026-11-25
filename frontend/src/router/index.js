@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { authState, refreshSession } from '../api/auth'
 import LoginView from '../views/auth/LoginView.vue'
+import RecuperarContrasenaView from '../views/auth/RecuperarContrasenaView.vue'
 import MainLayout from '../layouts/MainLayout.vue'
 import ClientesView from '../views/clientes/ClientesView.vue'
 import MascotasView from '../views/mascotas/MascotasView.vue'
@@ -16,6 +17,8 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/login', name: 'login', component: LoginView },
+    // R1.2: pública, como el inicio de sesión (3.1.2 es extend de Iniciar sesión).
+    { path: '/recuperar-contrasena', name: 'recuperar-contrasena', component: RecuperarContrasenaView },
     {
       path: '/',
       component: MainLayout,
@@ -46,7 +49,7 @@ router.beforeEach(async (to) => {
   if (to.meta.requiresAuth && !authState.user) {
     return { name: 'login' }
   }
-  if (to.name === 'login' && authState.user) {
+  if ((to.name === 'login' || to.name === 'recuperar-contrasena') && authState.user) {
     return { name: 'menu' }
   }
   return true

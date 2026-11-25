@@ -34,7 +34,7 @@ const navigation = [
 
 function isActive(item) {
   if (!item.path) return false
-  if (item.path === '/') return route.path === '/' || route.name === 'login'
+  if (item.path === '/') return route.path === '/' || route.name === 'login' || route.name === 'recuperar-contrasena'
   return route.path.startsWith(item.path)
 }
 
