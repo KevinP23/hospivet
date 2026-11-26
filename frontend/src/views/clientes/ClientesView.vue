@@ -14,14 +14,16 @@ const emptyForm = () => ({
 })
 const form = reactive(emptyForm())
 
+// COR-04 D2: bajo el campo vacío va "Campo obligatorio"; la alerta dice "Complete los campos obligatorios" (pág. 65).
+const CAMPO_OBLIGATORIO = 'Campo obligatorio'
 const rules = {
   ci: [
-    { required: true, message: 'Complete los campos obligatorios', trigger: 'blur' },
+    { required: true, message: CAMPO_OBLIGATORIO, trigger: 'blur' },
     { pattern: /^\d+$/, message: 'CI inválido', trigger: 'blur' },
   ],
-  nombre: [{ required: true, message: 'Complete los campos obligatorios', trigger: 'blur' }],
-  apellido: [{ required: true, message: 'Complete los campos obligatorios', trigger: 'blur' }],
-  telefono: [{ required: true, message: 'Complete los campos obligatorios', trigger: 'blur' }],
+  nombre: [{ required: true, message: CAMPO_OBLIGATORIO, trigger: 'blur' }],
+  apellido: [{ required: true, message: CAMPO_OBLIGATORIO, trigger: 'blur' }],
+  telefono: [{ required: true, message: CAMPO_OBLIGATORIO, trigger: 'blur' }],
   correo: [{ type: 'email', message: 'Correo inválido', trigger: 'blur' }],
 }
 
@@ -41,7 +43,8 @@ async function submit() {
   saving.value = true
   try {
     await registrarCliente({ ...form })
-    ElMessage.success('Cliente registrado correctamente')
+    // COR-04 D3: texto de SD-03 (pasos 14 y 16).
+    ElMessage.success('Cliente registrado')
     Object.assign(form, emptyForm())
     formRef.value.clearValidate()
   } catch (error) {
@@ -70,7 +73,8 @@ function cancel() {
     <div class="form-panel">
       <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" />
 
-      <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent="submit">
+      <!-- COR-04 D1: sin asteriscos, como el mockup. -->
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top" hide-required-asterisk @submit.prevent="submit">
         <div class="form-columns">
           <el-form-item label="Nombre" prop="nombre" :error="fieldErrors.nombre">
             <el-input v-model="form.nombre" maxlength="60" />
