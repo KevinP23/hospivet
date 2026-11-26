@@ -44,6 +44,11 @@ mybatis-plus:
     banner: false
 
 hospivet:
+  # R10 N-03 (D-21): horario de atención para Solicitar cita del cliente.
+  portal:
+    dias-atencion: ${HOSPIVET_PORTAL_DIAS:MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY}
+    bloques: ${HOSPIVET_PORTAL_BLOQUES:09:00-12:00,15:00-18:00}
+    intervalo-min: ${HOSPIVET_PORTAL_INTERVALO:30}
   mail:
     remitente: ${HOSPIVET_MAIL_FROM:${HOSPIVET_MAIL_USERNAME:}}
   cors:

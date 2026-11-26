@@ -44,6 +44,8 @@ public class SecurityConfig {
                                 "/api/servicios/**", "/api/citas/**", "/api/atenciones/**", "/api/diagnosticos/**",
                                 "/api/promociones/**", "/api/facturas/**", "/api/impresoras/**", "/api/reportes/**")
                         .hasRole("VETERINARIO")
+                        // R10 (D-21): el Portal Cliente es solo para el rol CLIENTE.
+                        .requestMatchers("/api/portal/**").hasRole("CLIENTE")
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))

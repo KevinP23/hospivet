@@ -121,6 +121,13 @@ public class CitaService {
      * con el de otra cita PROGRAMADA del mismo veterinario (decisión D-11).
      */
     private void validateAvailability(Long idVeterinario, LocalDateTime inicio, Servicio servicio, Long excludedId) {
+        if (!horarioLibre(idVeterinario, inicio, servicio, excludedId)) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Horario no disponible, seleccione otro");
+        }
+    }
+
+    /** D-11: verdadero si [inicio, inicio + duración) no se solapa con otra cita PROGRAMADA del veterinario. */
+    public boolean horarioLibre(Long idVeterinario, LocalDateTime inicio, Servicio servicio, Long excludedId) {
         LocalDateTime fin = inicio.plusMinutes(servicio.getDuracionMin());
         LambdaQueryWrapper<Cita> query = Wrappers.<Cita>lambdaQuery()
                 .eq(Cita::getIdVeterinario, idVeterinario)
@@ -137,9 +144,7 @@ public class CitaService {
                     .plusMinutes(servicios.get(cita.getIdServicio()).getDuracionMin());
             return cita.getFechaHora().isBefore(fin) && inicio.isBefore(finExistente);
         });
-        if (ocupado) {
-            throw new BusinessException(HttpStatus.CONFLICT, "Horario no disponible, seleccione otro");
-        }
+        return !ocupado;
     }
 
     private Cita requireProgramada(Long idCita, Long idVeterinario) {
