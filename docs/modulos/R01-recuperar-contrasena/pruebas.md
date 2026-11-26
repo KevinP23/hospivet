@@ -51,7 +51,7 @@ Los casos usan las opciones aprobadas en el plan (D-20), sin agregados en pantal
 - **Pasos:**
   1. Escribir el nombre de usuario (por ejemplo, `kpinto`) y pulsar *Enviar contraseña temporal*.
   2. Revisar la bandeja del correo registrado.
-- **Resultado esperado:** aparece "Recuperación solicitada" y llega el correo "HOSPIVET · Contraseña temporal" con el usuario y una contraseña temporal de 10 caracteres.
+- **Resultado esperado:** aparece "Recuperación solicitada" y llega el correo "HOSPIVET · Contraseña temporal" con el usuario y una contraseña temporal de 8 caracteres (10 hasta el ajuste del 2026-11-25).
 - **Verificación previa:** 2026-11-25 · Realizada por el responsable con su correo real; el registro del backend no muestra errores de envío. La prueba automática con un envío simulado confirma la contraseña temporal de 10 caracteres, el destinatario y el asunto.
 - **Revisión del responsable:** Aprobado (2026-11-25)
 - **Observaciones (funcionamiento y visual):**

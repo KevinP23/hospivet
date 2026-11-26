@@ -60,7 +60,7 @@ No hay tablas ni migraciones nuevas. Se actualiza `usuario.clave_hash` con el ha
 | SD-02 | `recuperarContrasena(identidad)` | `POST /api/auth/recuperacion` con `{ "identidad": "…" }` (público, como el inicio de sesión) | `200` "Recuperación solicitada" · `404` "Usuario no registrado" · error de correo según N-03 |
 
 - **Búsqueda (R1.2.2, N-01):** usuario activo con rol `VETERINARIO` cuyo `nombre_usuario` sea igual a lo escrito, o cuyo `veterinario.correo` coincida sin distinguir mayúsculas.
-- **Contraseña temporal (R1.2.4, N-02):** 10 caracteres de letras y números, sin caracteres confusos (0/O, 1/l/I), generada con `SecureRandom`.
+- **Contraseña temporal (R1.2.4, N-02):** 8 caracteres (ajuste pedido por el responsable el 2026-11-25; antes 10) de letras y números, sin caracteres confusos (0/O, 1/l/I), generada con `SecureRandom`.
 - **Orden de los pasos (CA-05):** en una sola transacción se guarda el nuevo hash y se envía el correo. Si el envío falla, la transacción se deshace y la contraseña anterior sigue vigente.
 - **Correo:** se reutiliza la configuración SMTP de R07 (`HOSPIVET_MAIL_*`). Asunto "HOSPIVET · Contraseña temporal". El cuerpo lleva el nombre del veterinario, su usuario y la contraseña temporal. No es una pantalla, así que no cambia ninguna interfaz.
 - La sesión no cambia: recuperar no inicia sesión.

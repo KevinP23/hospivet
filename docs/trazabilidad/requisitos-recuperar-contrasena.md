@@ -11,7 +11,7 @@ Indicación del docente: las pantallas deben contener exactamente lo que muestra
 | R1.2.1 | 3.1.2 paso 1 | El texto "Recuperar contraseña" de *Iniciar sesión* abre la ruta pública `/recuperar-contrasena`. |
 | R1.2.2 | 3.1.2 paso 4a · SD-02 `recuperarContrasena(identidad)` | `POST /api/auth/recuperacion`: busca un veterinario activo por nombre de usuario exacto o por correo sin distinguir mayúsculas. |
 | R1.2.3 | 3.1.2 curso 4b · SD-02 alt | Mensaje "Usuario no registrado" bajo el campo; no se modifica ninguna credencial. |
-| R1.2.4 | 3.1.2 paso 5 · SD-02 pasos 12–16 | Genera una contraseña temporal de 10 caracteres, guarda su hash BCrypt en `usuario.clave_hash`, la envía al correo del veterinario y responde "Recuperación solicitada". |
+| R1.2.4 | 3.1.2 paso 5 · SD-02 pasos 12–16 | Genera una contraseña temporal de 8 caracteres (ajuste del 2026-11-25), guarda su hash BCrypt en `usuario.clave_hash`, la envía al correo del veterinario y responde "Recuperación solicitada". |
 
 ## Correspondencia con el modelo de datos
 
@@ -21,7 +21,7 @@ No hay tablas ni migraciones nuevas. Se actualiza `usuario.clave_hash` (4.7.1, n
 
 | ID | Decisión |
 |---|---|
-| N-01 | Se identifica por nombre de usuario exacto o por correo sin distinguir mayúsculas; solo cuentas activas con rol `VETERINARIO`. |
+| N-01 | Se identifica por nombre de usuario exacto o por correo sin distinguir mayúsculas; solo cuentas activas con rol `VETERINARIO`. **Ampliado por D-21 (R10):** también clientes activos por CI o correo; si no tienen cuenta, se crea con un usuario de nombre + inicial del apellido + últimos 4 dígitos del CI (por ejemplo, `mariav4562`). |
 | N-02 | La contraseña temporal reemplaza a la anterior y no vence; no hay pantalla para cambiarla. |
 | N-03 | Si el correo no se puede enviar (sin correo registrado, sin SMTP o sin internet), la transacción se deshace, la contraseña anterior sigue vigente y se muestra la alerta general "No fue posible completar la operación". |
 | N-04 | El resultado correcto se muestra en verde con "Recuperación solicitada" (SD-02) y el campo se limpia. |

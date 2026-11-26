@@ -7,7 +7,7 @@ Estas decisiones se aplican a la primera entrega de HOSPIVET. Los documentos Wor
 | D-01 | La iteración 5 integrada es la referencia funcional principal; la iteración 4 se usa para contrastar el modelo. | Evita mezclar versiones sin perder trazabilidad con el diseño anterior. |
 | D-02 | La mascota almacena `fecha_nacimiento` y la edad se calcula al consultar. | La edad cambia con el tiempo; no debe persistirse como dato fijo. |
 | D-03 | `apellido` es obligatorio al registrar un cliente. | El modelo de datos lo declara obligatorio y permite identificar al propietario con nombre completo. |
-| D-04 | En esta entrega solo inicia sesión el rol `VETERINARIO`. | Es el actor indicado para registrar clientes y mascotas. El rol `CLIENTE` permanece reservado para una entrega posterior. |
+| D-04 | En esta entrega solo inicia sesión el rol `VETERINARIO`. **Reemplazada por D-21 (2026-11-25).** | Es el actor indicado para registrar clientes y mascotas. El rol `CLIENTE` permanece reservado para una entrega posterior. |
 | D-05 | La cuenta veterinaria inicial se crea una sola vez mediante variables de entorno. | Permite iniciar el sistema sin guardar usuarios o contraseñas reales en el repositorio. |
 | D-06 | La autenticación usa sesión HTTP y contraseña BCrypt. | El navegador conserva una sesión segura y nunca se almacena la contraseña en texto plano. |
 | D-07 | PostgreSQL es la base de producción/desarrollo y Flyway administra el esquema. | La creación de tablas queda versionada y repetible. H2 se usa únicamente en pruebas automatizadas. |
@@ -24,6 +24,7 @@ Estas decisiones se aplican a la primera entrega de HOSPIVET. Los documentos Wor
 | D-18 | Menú principal: al iniciar sesión se abre la interfaz del menú (3.1.1 paso 6) en lugar de *Clientes*; puntos N-01 a N-03 del plan COR-02 con la opción A (*Reportes* visible y deshabilitado hasta R06, cabecera con nombre y apellido del veterinario y *Clientes y mascotas* abre *Clientes*). | Decisión del responsable el 2026-10-27; plan en `docs/modulos/COR-02-menu-principal`. |
 | D-19 | Reportes: puntos N-01 a N-08 del plan R06 resueltos sin agregar nada a las pantallas, por indicación del docente (N-01 B, N-02 A, N-03 A, N-04 A, N-05 B, N-06 C, N-07 A, N-08 A): *Tipo de reporte* solo en el reporte de inventario, datos de toda la veterinaria, ingreso de servicios = citas atendidas × precio del catálogo, concepto con las líneas de la factura, estados *Disponible* y *Agotado*, periodo que no puede quedar inválido, solo productos activos y facturas no anuladas. | Decisión del responsable el 2026-11-24; detalle en `requisitos-reportes.md`. |
 | D-20 | Recuperar contraseña: puntos N-01 a N-05 del plan R1.2 resueltos con la opción A, sin agregar nada a la pantalla (identificación por usuario exacto o correo sin distinguir mayúsculas solo para veterinarios activos, contraseña temporal sin vencimiento que reemplaza a la anterior, sin cambio de contraseña si el correo no sale y con la alerta general de error, "Recuperación solicitada" en verde y botón sin efecto con el campo vacío). | Decisión del responsable el 2026-11-24; plan en `docs/modulos/R01-recuperar-contrasena`. |
+| D-21 | Consulta del cliente (R10): puntos N-01 a N-08 del plan R10 con la opción A. El rol `CLIENTE` puede iniciar sesión en la misma pantalla y entra al *Portal Cliente* (reemplaza D-04). El usuario del cliente es nombre + inicial del apellido + últimos 4 dígitos del CI (por ejemplo, `mariav4562`) (ajuste del 2026-11-25; antes el CI) y la cuenta se crea al pedir *Recuperar contraseña* con su CI o correo (amplía N-01 de D-20). Horario de atención lunes a sábado de 09:00 a 12:00 y de 15:00 a 18:00 cada 30 minutos; veterinario libre asignado por el sistema; motivo "Solicitada por el cliente"; aviso "Cita solicitada"; misma descripción del servicio en tarjeta y detalle; solo promociones publicadas vigentes hoy. | Decisión del responsable el 2026-11-25; plan en `docs/modulos/R10-consulta-cliente`. |
 
 ## Alcance actual
 
@@ -36,6 +37,7 @@ Estas decisiones se aplican a la primera entrega de HOSPIVET. Los documentos Wor
 - Promociones: crear, editar, publicar y eliminar (R9.1–R9.4).
 - Facturación: revisar, editar, generar, imprimir y enviar facturas (R7.1–R7.5).
 - Reportes de inventario, ingresos, servicios y productos (R6.1–R6.4), solo de consulta.
+- Portal Cliente: solicitar cita, consultar servicios y ver promociones vigentes (R10.1–R10.3).
 - Validaciones tanto en frontend como en backend, con errores asociados a cada campo.
 
-Fuera de alcance por ahora: alta de usuarios desde la interfaz, acceso de clientes (R10), y edición o baja de clientes y mascotas. El estado de cada módulo está en `docs/modulos/README.md`.
+Fuera de alcance por ahora: alta de usuarios desde la interfaz y edición o baja de clientes y mascotas. El estado de cada módulo está en `docs/modulos/README.md`.

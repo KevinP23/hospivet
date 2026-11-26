@@ -106,3 +106,14 @@ Este archivo identifica correcciones documentales; no modifica los Word original
 3. Definir el mensaje cuando la contraseña temporal no se puede enviar; hoy se muestra la alerta general "No fue posible completar la operación" y no se cambia la contraseña (N-03).
 4. Representar en la interfaz el estado correcto "Recuperación solicitada" (N-04) e indicar que el botón no actúa con el campo vacío (N-05).
 5. Indicar cómo se registra el correo del veterinario: hoy solo al crear la cuenta inicial (`HOSPIVET_BOOTSTRAP_CORREO`), porque no hay una pantalla para editar veterinarios.
+
+## Consulta del cliente (R10)
+
+1. Agregar al caso *Iniciar sesión* el actor Cliente y la apertura del *Portal Cliente*, y retirar la restricción de D-04 (N-02).
+2. Documentar cómo obtiene el cliente su cuenta: su usuario es nombre + inicial del apellido + últimos 4 dígitos del CI (por ejemplo, `mariav4562`) y la contraseña llega por *Recuperar contraseña*; ampliar los actores de 3.1.2 (N-01).
+3. Definir los "horarios configurados" de 3.1.30: lunes a sábado, de 09:00 a 12:00 y de 15:00 a 18:00, cada 30 minutos (N-03).
+4. Indicar que el sistema asigna el veterinario (N-04) y que el motivo de la cita es "Solicitada por el cliente" (N-05).
+5. Representar en *Solicitar cita del cliente* el estado correcto "Cita solicitada" (N-06).
+6. Unificar la descripción del servicio: el mockup muestra un texto corto y otro largo, pero el diccionario tiene un solo campo `descripcion` (N-07).
+7. Definir "promoción vigente" para el cliente (publicada y con la fecha de hoy dentro de su vigencia) y cómo se arma el detalle (N-08).
+8. En el mockup de *Solicitar cita del cliente* la navegación dice *Reservar cita*, mientras que la tabla 3.2 la llama "Consultar cita (Cliente)"; conviene unificar el nombre.

@@ -1,6 +1,6 @@
 # HOSPIVET
 
-Base funcional para inicio de sesión de veterinarios, registro de clientes, registro de mascotas vinculadas a su propietario, gestión de inventario, citas, atención médica, promociones, facturación y reportes.
+Base funcional para inicio de sesión de veterinarios, registro de clientes, registro de mascotas vinculadas a su propietario, gestión de inventario, citas, atención médica, promociones, facturación, reportes y el Portal Cliente.
 
 ## Estructura
 
@@ -126,5 +126,7 @@ Consulte `docs/trazabilidad` para la correspondencia con las iteraciones 4 y 5 y
 - Promociones: crear, editar, publicar y eliminar.
 - Facturación: revisar, editar, generar, imprimir y enviar facturas por correo.
 - Reportes: inventario, ingresos, servicios y productos (solo consulta).
+- Recuperar contraseña: envía una contraseña temporal al correo registrado.
+- Portal Cliente: el cliente entra con su usuario (nombre + inicial del apellido + dígitos del CI), solicita citas y consulta servicios y promociones vigentes.
 
 El catálogo inicial contiene `Consulta general`. Su precio `0.00 Bs` y duración de `30 minutos` son valores provisionales registrados en `docs/trazabilidad/requisitos-citas.md`; deben confirmarse antes de usarlos en facturación o planificación por duración.
