@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | Implementado (retroactivo) · En revisión — R1.1 · R1.2 en su propio plan (`R01-recuperar-contrasena`) |
+| Estado | Cerrado (R1.1: pruebas aprobadas por el responsable el 2026-11-26) · R1.2 en su propio plan (`R01-recuperar-contrasena`) |
 | Versión | 1 |
 | Fecha | 2026-10-21 |
 | Requisitos | R1.1, R1.1.1–6 (implementado) · R1.2, R1.2.1–4 (ver `R01-recuperar-contrasena`) |
@@ -23,7 +23,7 @@ Permitir que el veterinario ingrese al sistema con usuario y contraseña, y mant
 
 | ID | Requisito | Criterio verificable | Mensaje exacto |
 |---|---|---|---|
-| CA-01 | R1.1.1 | El formulario solicita usuario y contraseña; ambos son obligatorios. | "Ingrese el usuario" / "Ingrese la contraseña" |
+| CA-01 | R1.1.1 | El formulario solicita usuario y contraseña; con alguno vacío *Ingresar* no hace nada (COR-03, D-22: sin textos ni asteriscos, como el mockup). | — |
 | CA-02 | R1.1.2–3 | Con un usuario inexistente o inactivo no se inicia sesión. | "Usuario no encontrado" |
 | CA-03 | R1.1.4–5 | Con contraseña incorrecta no se inicia sesión y se conservan los datos del formulario. | "Contraseña incorrecta" |
 | CA-04 | R1.1.6 | Con credenciales correctas se abre el menú principal (corregido en COR-02; antes abría Clientes). | — |

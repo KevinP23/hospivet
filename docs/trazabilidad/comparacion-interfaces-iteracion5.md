@@ -14,9 +14,9 @@ Fuente visual revisada: `Iteracion5_Hospivet_integrada.docx`. El documento Word 
 
 - Campos: usuario y contraseña.
 - Acción: `Ingresar`.
-- Estados contemplados: `Usuario no encontrado`, `Contraseña incorrecta` y campos obligatorios.
+- Estados contemplados: `Usuario no encontrado` y `Contraseña incorrecta`, en la alerta debajo de *Contraseña* como el mockup; con campos vacíos *Ingresar* no hace nada y no hay asteriscos (COR-03, D-22).
 - "Recuperar contraseña" abre la interfaz *Recuperar contraseña* (R1.2), implementada según `requisitos-recuperar-contrasena.md`.
-- El perfil mostrado proviene de la sesión real y no del nombre ficticio utilizado en el mockup.
+- El perfil mostrado proviene de la sesión real y no del nombre ficticio utilizado en el mockup; antes de iniciar sesión no se muestra (COR-03).
 
 ## Registro de cliente
 
