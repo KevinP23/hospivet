@@ -953,12 +953,168 @@ class HospivetApplicationTests {
         java.util.regex.Matcher temporal = java.util.regex.Pattern.compile("Contraseña temporal: (\\S+)")
                 .matcher((String) mensaje.getContent());
         assertThat(temporal.find()).isTrue();
-        assertThat(temporal.group(1)).hasSize(10);
+        assertThat(temporal.group(1)).hasSize(8);
 
         iniciarSesion("veterinario", "clave-segura")
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Contraseña incorrecta"));
         iniciarSesion("veterinario", temporal.group(1)).andExpect(status().isOk());
+    }
+
+    @Test
+    void atiendeAlClienteEnElPortalSegunLaIteracion5() throws Exception {
+        Long idVeterinario = veterinarioMapper.selectList(null).get(0).getIdVeterinario();
+        Long ana = clienteReporte("6000001", "Ana", "Pérez");
+        com.hospivet.cliente.model.Cliente fichaAna = clienteMapper.selectById(ana);
+        fichaAna.setCorreo("ana.perez@example.test");
+        clienteMapper.updateById(fichaAna);
+        Long firulais = mascotaReporte(ana);
+        Long luis = clienteReporte("6000002", "Luis", "Rojas");
+        Long mascotaDeLuis = mascotaReporte(luis);
+
+        // R10 N-01 (D-21): la cuenta del cliente se crea al recuperar la contraseña con su CI; el usuario es nombre + inicial del apellido + últimos 4 dígitos del CI.
+        org.springframework.mail.javamail.JavaMailSender correo =
+                org.mockito.Mockito.mock(org.springframework.mail.javamail.JavaMailSender.class);
+        org.mockito.Mockito.when(correo.createMimeMessage())
+                .thenReturn(new jakarta.mail.internet.MimeMessage((jakarta.mail.Session) null));
+        com.hospivet.auth.service.RecuperacionService recuperacion = recuperacionCon(correo);
+        new org.springframework.transaction.support.TransactionTemplate(transactionManager)
+                .execute(estado -> recuperacion.recuperarContrasena("6000001"));
+        org.mockito.ArgumentCaptor<jakarta.mail.internet.MimeMessage> enviado =
+                org.mockito.ArgumentCaptor.forClass(jakarta.mail.internet.MimeMessage.class);
+        org.mockito.Mockito.verify(correo).send(enviado.capture());
+        assertThat(enviado.getValue().getAllRecipients()[0].toString()).isEqualTo("ana.perez@example.test");
+        java.util.regex.Matcher temporal = java.util.regex.Pattern.compile("Contraseña temporal: (\\S+)")
+                .matcher((String) enviado.getValue().getContent());
+        assertThat(temporal.find()).isTrue();
+        assertThat(clienteMapper.selectById(ana).getIdUsuario()).isNotNull();
+
+        // R10 N-02: la misma pantalla de inicio de sesión; el rol CLIENTE entra con su ficha activa.
+        assertThat(usuarioMapper.selectById(clienteMapper.selectById(ana).getIdUsuario()).getNombreUsuario())
+                .isEqualTo("anap0001");
+        assertThat((String) enviado.getValue().getContent()).contains("Usuario: anap0001");
+        assertThat(temporal.group(1)).hasSize(8);
+        MvcResult login = iniciarSesion("anap0001", temporal.group(1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rol").value("CLIENTE"))
+                .andExpect(jsonPath("$.nombre").value("Ana"))
+                .andExpect(jsonPath("$.apellido").value("Pérez"))
+                .andReturn();
+        org.springframework.mock.web.MockHttpSession cliente =
+                (org.springframework.mock.web.MockHttpSession) login.getRequest().getSession(false);
+
+        // Alcance del actor (2.5) y CA-09: el cliente no usa las rutas del veterinario, ni el veterinario las suyas.
+        mockMvc.perform(get("/api/clientes").session(cliente)).andExpect(status().isForbidden());
+        org.springframework.mock.web.MockHttpSession veterinario = (org.springframework.mock.web.MockHttpSession)
+                iniciarSesion("veterinario", "clave-segura").andReturn().getRequest().getSession(false);
+        mockMvc.perform(get("/api/portal/servicios").session(veterinario)).andExpect(status().isForbidden());
+
+        // Solo sus mascotas.
+        mockMvc.perform(get("/api/portal/mascotas").session(cliente))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].idMascota").value(firulais));
+
+        // R10.1.1 y N-03: lunes a sábado, 09:00–12:00 y 15:00–18:00 cada 30 min; ocupado si se solapa (D-11).
+        LocalDate lunes = LocalDate.now().with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.MONDAY));
+        citaReporte(luis, mascotaDeLuis, idVeterinario, servicioInicialId, lunes.atTime(10, 0), "PROGRAMADA");
+        mockMvc.perform(get("/api/portal/citas/horarios?fecha={f}&idServicio={s}", lunes, servicioInicialId)
+                        .session(cliente))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(12))
+                .andExpect(jsonPath("$[0].hora").value("09:00"))
+                .andExpect(jsonPath("$[0].disponible").value(true))
+                .andExpect(jsonPath("$[2].hora").value("10:00"))
+                .andExpect(jsonPath("$[2].disponible").value(false))
+                .andExpect(jsonPath("$[6].hora").value("15:00"));
+        LocalDate domingo = LocalDate.now().with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.SUNDAY));
+        mockMvc.perform(get("/api/portal/citas/horarios?fecha={f}&idServicio={s}", domingo, servicioInicialId)
+                        .session(cliente))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+
+        // R10.1.6 y SD-30: registra la cita PROGRAMADA con el veterinario libre y el motivo de N-05.
+        String solicitud = "{\"idMascota\":%d,\"idServicio\":%d,\"fecha\":\"%s\",\"hora\":\"%s\"}";
+        long idCita = objectMapper.readTree(mockMvc.perform(post("/api/portal/citas").session(cliente).with(csrf())
+                        .contentType("application/json")
+                        .content(solicitud.formatted(firulais, servicioInicialId, lunes, "09:00")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.mensaje").value("Cita solicitada"))
+                .andReturn().getResponse().getContentAsString()).get("idCita").asLong();
+        com.hospivet.cita.model.Cita registrada = citaMapper.selectById(idCita);
+        assertThat(registrada.getEstado()).isEqualTo("PROGRAMADA");
+        assertThat(registrada.getMotivo()).isEqualTo("Solicitada por el cliente");
+        assertThat(registrada.getIdVeterinario()).isEqualTo(idVeterinario);
+        assertThat(registrada.getIdCliente()).isEqualTo(ana);
+
+        // R10.1.4 y R10.1.5: el horario ya no está disponible.
+        for (String hora : new String[]{"09:00", "10:00"}) {
+            mockMvc.perform(post("/api/portal/citas").session(cliente).with(csrf()).contentType("application/json")
+                            .content(solicitud.formatted(firulais, servicioInicialId, lunes, hora)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.message").value("Horario no disponible, seleccione otro"));
+        }
+        // No puede reservar para la mascota de otro cliente.
+        mockMvc.perform(post("/api/portal/citas").session(cliente).with(csrf()).contentType("application/json")
+                        .content(solicitud.formatted(mascotaDeLuis, servicioInicialId, lunes, "11:00")))
+                .andExpect(status().isBadRequest());
+
+        // R10.3.5 y R10.3.1–4 (N-08): solo promociones PUBLICADAS vigentes hoy, con su detalle.
+        mockMvc.perform(get("/api/portal/promociones").session(cliente))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        Long vigente = promocionPortal("Vacunas", "PUBLICADA", LocalDate.now().minusDays(1), LocalDate.now().plusDays(5));
+        promocionPortal("Borrador", "BORRADOR", LocalDate.now().minusDays(1), LocalDate.now().plusDays(5));
+        promocionPortal("Vencida", "PUBLICADA", LocalDate.now().minusDays(20), LocalDate.now().minusDays(2));
+        com.hospivet.promocion.model.PromocionServicio item = new com.hospivet.promocion.model.PromocionServicio();
+        item.setIdPromocion(vigente);
+        item.setIdServicio(servicioInicialId);
+        promocionServicioMapper.insert(item);
+        mockMvc.perform(get("/api/portal/promociones").session(cliente))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].titulo").value("Vacunas"))
+                .andExpect(jsonPath("$[0].detalle").value("Aplicable a: Consulta general. Descuento: 20 %."));
+
+        // R10.2.1–4 y R10.2.5: servicios activos; sin servicios activos, lista vacía.
+        mockMvc.perform(get("/api/portal/servicios").session(cliente))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nombre").value("Consulta general"));
+        com.hospivet.servicio.model.Servicio consulta = servicioMapper.selectById(servicioInicialId);
+        consulta.setActivo(false);
+        servicioMapper.updateById(consulta);
+        mockMvc.perform(get("/api/portal/servicios").session(cliente))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+
+        // Si el usuario corto ya existe, se usa el CI completo; la recuperación acepta también el usuario.
+        Long anaPaz = clienteReporte("7000001", "Ana", "Paz");
+        com.hospivet.cliente.model.Cliente fichaAnaPaz = clienteMapper.selectById(anaPaz);
+        fichaAnaPaz.setCorreo("ana.paz@example.test");
+        clienteMapper.updateById(fichaAnaPaz);
+        org.springframework.mail.javamail.JavaMailSender correo2 =
+                org.mockito.Mockito.mock(org.springframework.mail.javamail.JavaMailSender.class);
+        org.mockito.Mockito.when(correo2.createMimeMessage())
+                .thenAnswer(invocacion -> new jakarta.mail.internet.MimeMessage((jakarta.mail.Session) null));
+        com.hospivet.auth.service.RecuperacionService recuperacion2 = recuperacionCon(correo2);
+        org.springframework.transaction.support.TransactionTemplate transaccion =
+                new org.springframework.transaction.support.TransactionTemplate(transactionManager);
+        transaccion.execute(estado -> recuperacion2.recuperarContrasena("ana.paz@example.test"));
+        assertThat(usuarioMapper.selectById(clienteMapper.selectById(anaPaz).getIdUsuario()).getNombreUsuario())
+                .isEqualTo("anap7000001");
+        assertThat(transaccion.execute(estado -> recuperacion2.recuperarContrasena("anap0001")).mensaje())
+                .isEqualTo("Recuperación solicitada");
+        org.mockito.Mockito.verify(correo2, org.mockito.Mockito.times(2))
+                .send(org.mockito.ArgumentMatchers.any(jakarta.mail.internet.MimeMessage.class));
+    }
+
+    private Long promocionPortal(String titulo, String estado, LocalDate inicio, LocalDate fin) {
+        com.hospivet.promocion.model.Promocion promocion = new com.hospivet.promocion.model.Promocion();
+        promocion.setTitulo(titulo);
+        promocion.setDescripcion("Descuento de prueba");
+        promocion.setPorcentajeDescuento(new BigDecimal("20.00"));
+        promocion.setFechaInicio(inicio);
+        promocion.setFechaFin(fin);
+        promocion.setEstado(estado);
+        promocionMapper.insert(promocion);
+        return promocion.getIdPromocion();
     }
 
     @Autowired
@@ -977,7 +1133,8 @@ class HospivetApplicationTests {
         org.springframework.beans.factory.support.StaticListableBeanFactory beans =
                 new org.springframework.beans.factory.support.StaticListableBeanFactory(
                         java.util.Map.of("mailSender", sender));
-        return new com.hospivet.auth.service.RecuperacionService(usuarioMapper, veterinarioMapper, passwordEncoder,
+        return new com.hospivet.auth.service.RecuperacionService(usuarioMapper, veterinarioMapper, clienteMapper,
+                passwordEncoder,
                 beans.getBeanProvider(org.springframework.mail.javamail.JavaMailSender.class),
                 "hospivet@example.test");
     }
