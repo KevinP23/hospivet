@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | Implementado (retroactivo) · En revisión |
+| Estado | Cerrado (pruebas aprobadas por el responsable el 2026-11-26) |
 | Versión | 1 |
 | Fecha | 2026-10-21 |
 | Requisitos | R2.1, R2.1.1–6 |
@@ -27,7 +27,7 @@ Registrar al propietario de las mascotas con un CI válido y único para asociar
 | CA-02 | R2.1.2–3 | Si falta nombre, apellido, CI o teléfono, no se guarda y se conservan los datos. | "Complete los campos obligatorios" |
 | CA-03 | R2.1.4–5 | Si el CI contiene caracteres no numéricos, no se guarda. | "CI inválido" |
 | CA-04 | — | Si el CI ya existe, no se guarda. | "El CI ya está registrado" |
-| CA-05 | R2.1.6 | Con datos válidos se guarda, se muestra confirmación y el formulario se limpia. | "Cliente registrado correctamente" |
+| CA-05 | R2.1.6 | Con datos válidos se guarda, se muestra confirmación y el formulario se limpia. | "Cliente registrado" (SD-03; COR-04, D-23) |
 
 ## 4. Diseño implementado
 

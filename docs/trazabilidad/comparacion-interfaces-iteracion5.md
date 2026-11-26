@@ -23,7 +23,7 @@ Fuente visual revisada: `Iteracion5_Hospivet_integrada.docx`. El documento Word 
 - Distribución del mockup: nombre/apellido, carnet de identidad/teléfono y correo/dirección.
 - Corrección aprobada aplicada: `apellido` obligatorio.
 - Acciones: `Guardar cliente` y `Cancelar`.
-- Estados contemplados: `Complete los campos obligatorios` y `CI inválido`.
+- Estados contemplados: `Complete los campos obligatorios` (con "Campo obligatorio" bajo cada campo vacío, sin asteriscos) y `CI inválido`, como el mockup; además `Correo inválido` y `El CI ya está registrado` (COR-04, D-23).
 
 ## Registro de mascota
 

@@ -5,7 +5,7 @@ Estado de cada módulo según `docs/METODOLOGIA.md`. Los módulos R01 a R05 se c
 | Módulo | Requisitos | Secuencias | Estado | Plan |
 |---|---|---|---|---|
 | R01 Autenticación | R1.1 (R1.2 en su propio plan) | SD-01, SD-02 | Cerrado (2026-11-26) | [plan](R01-autenticacion/plan.md) |
-| R02 Clientes | R2.1 | SD-03 | Implementado (retroactivo) · En revisión | [plan](R02-clientes/plan.md) |
+| R02 Clientes | R2.1 | SD-03 | Cerrado (2026-11-26) | [plan](R02-clientes/plan.md) |
 | R03 Mascotas | R3.1 | SD-04 | Implementado (retroactivo) · En revisión | [plan](R03-mascotas/plan.md) |
 | R04 Inventario | R4.1–R4.4 | SD-05 a SD-08 | Implementado (retroactivo) · En revisión | [plan](R04-inventario/plan.md) |
 | R05 Citas | R5.1–R5.4 | SD-09 a SD-12 | Implementado (retroactivo) · En revisión | [plan](R05-citas/plan.md) |
@@ -18,6 +18,7 @@ Estado de cada módulo según `docs/METODOLOGIA.md`. Los módulos R01 a R05 se c
 | R01 Recuperar contraseña | R1.2 | SD-02 | Cerrado (2026-11-25) | [plan](R01-recuperar-contrasena/plan.md) |
 | R10 Consulta del cliente | R10.1–R10.3 | SD-30 a SD-32 | Cerrado (2026-11-25) | [plan](R10-consulta-cliente/plan.md) |
 | COR-03 Login igual al PDF | R1.1 · interfaz *Iniciar sesión* | SD-01 | Cerrado (2026-11-26) | [plan](COR-03-login-como-pdf/plan.md) |
+| COR-04 Clientes igual al PDF | R2.1 · interfaz *Registrar cliente* | SD-03 | Cerrado (2026-11-26) | [plan](COR-04-clientes-como-pdf/plan.md) |
 
 ## Orden propuesto para los módulos nuevos
 
