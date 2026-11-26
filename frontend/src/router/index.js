@@ -3,6 +3,7 @@ import { authState, refreshSession } from '../api/auth'
 import LoginView from '../views/auth/LoginView.vue'
 import RecuperarContrasenaView from '../views/auth/RecuperarContrasenaView.vue'
 import MainLayout from '../layouts/MainLayout.vue'
+import PortalLayout from '../layouts/PortalLayout.vue'
 import ClientesView from '../views/clientes/ClientesView.vue'
 import MascotasView from '../views/mascotas/MascotasView.vue'
 import InventarioView from '../views/inventario/InventarioView.vue'
@@ -12,6 +13,9 @@ import PromocionesView from '../views/promociones/PromocionesView.vue'
 import FacturacionView from '../views/facturacion/FacturacionView.vue'
 import MenuPrincipalView from '../views/menu/MenuPrincipalView.vue'
 import ReportesView from '../views/reportes/ReportesView.vue'
+import SolicitarCitaView from '../views/portal/SolicitarCitaView.vue'
+import ServiciosClienteView from '../views/portal/ServiciosClienteView.vue'
+import PromocionesClienteView from '../views/portal/PromocionesClienteView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -22,7 +26,7 @@ const router = createRouter({
     {
       path: '/',
       component: MainLayout,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, rol: 'VETERINARIO' },
       children: [
         { path: '', name: 'menu', component: MenuPrincipalView },
         { path: 'clientes', name: 'clientes', component: ClientesView },
@@ -39,8 +43,25 @@ const router = createRouter({
         { path: 'reportes/productos', name: 'reportes-productos', component: ReportesView, meta: { reporte: 'productos' } },
       ],
     },
+    // R10 Portal Cliente (D-21): solo el rol CLIENTE.
+    {
+      path: '/portal',
+      component: PortalLayout,
+      meta: { requiresAuth: true, rol: 'CLIENTE' },
+      children: [
+        { path: '', redirect: { name: 'portal-cita' } },
+        { path: 'cita', name: 'portal-cita', component: SolicitarCitaView },
+        { path: 'servicios', name: 'portal-servicios', component: ServiciosClienteView },
+        { path: 'promociones', name: 'portal-promociones', component: PromocionesClienteView },
+      ],
+    },
   ],
 })
+
+/** Pantalla inicial de cada rol: menú principal del veterinario o Reservar cita del cliente. */
+export function inicioSegunRol(user) {
+  return user?.rol === 'CLIENTE' ? { name: 'portal-cita' } : { name: 'menu' }
+}
 
 router.beforeEach(async (to) => {
   if (!authState.checked) {
@@ -50,10 +71,14 @@ router.beforeEach(async (to) => {
     return { name: 'login' }
   }
   if ((to.name === 'login' || to.name === 'recuperar-contrasena') && authState.user) {
-    return { name: 'menu' }
+    return inicioSegunRol(authState.user)
+  }
+  // Cada rol solo abre sus pantallas (alcance del actor Cliente, 2.5).
+  const rolRequerido = [...to.matched].reverse().find((registro) => registro.meta.rol)?.meta.rol
+  if (rolRequerido && authState.user && authState.user.rol !== rolRequerido) {
+    return inicioSegunRol(authState.user)
   }
   return true
 })
 
 export default router
-

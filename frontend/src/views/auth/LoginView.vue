@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { login } from '../../api/auth'
 import { apiFieldErrors, apiMessage } from '../../api/http'
 import AppHeader from '../../components/AppHeader.vue'
+import { inicioSegunRol } from '../../router'
 
 const route = useRoute()
 const router = useRouter()
@@ -26,8 +27,9 @@ async function submit() {
 
   loading.value = true
   try {
-    await login({ ...form })
-    await router.push({ name: 'menu' })
+    const usuario = await login({ ...form })
+    // D-21: el veterinario abre el menú principal y el cliente el Portal Cliente.
+    await router.push(inicioSegunRol(usuario))
   } catch (error) {
     errorMessage.value = apiMessage(error, 'No fue posible iniciar sesión')
     fieldErrors.value = apiFieldErrors(error)
