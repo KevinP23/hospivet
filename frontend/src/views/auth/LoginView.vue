@@ -8,22 +8,16 @@ import { inicioSegunRol } from '../../router'
 
 const route = useRoute()
 const router = useRouter()
-const formRef = ref()
 const loading = ref(false)
 const errorMessage = ref('')
 const fieldErrors = ref({})
 const form = reactive({ usuario: '', contrasena: '' })
 
-const rules = {
-  usuario: [{ required: true, message: 'Ingrese el usuario', trigger: 'blur' }],
-  contrasena: [{ required: true, message: 'Ingrese la contraseña', trigger: 'blur' }],
-}
-
 async function submit() {
+  // COR-03 D3: con algún campo vacío Ingresar no hace nada; el PDF no muestra mensajes para ese caso.
+  if (!form.usuario.trim() || !form.contrasena || loading.value) return
   errorMessage.value = ''
   fieldErrors.value = {}
-  const valid = await formRef.value.validate().catch(() => false)
-  if (!valid) return
 
   loading.value = true
   try {
@@ -56,13 +50,12 @@ async function submit() {
           type="warning"
           :closable="false"
         />
-        <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" />
-
-        <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent="submit">
-          <el-form-item label="Usuario" prop="usuario" :error="fieldErrors.usuario">
+        <!-- COR-03 D2: sin asteriscos, como el mockup. -->
+        <el-form :model="form" label-position="top" hide-required-asterisk @submit.prevent="submit">
+          <el-form-item label="Usuario" :error="fieldErrors.usuario">
             <el-input v-model="form.usuario" maxlength="50" autocomplete="username" />
           </el-form-item>
-          <el-form-item label="Contraseña" prop="contrasena" :error="fieldErrors.contrasena">
+          <el-form-item label="Contraseña" :error="fieldErrors.contrasena">
             <el-input
               v-model="form.contrasena"
               type="password"
@@ -71,6 +64,8 @@ async function submit() {
               @keyup.enter="submit"
             />
           </el-form-item>
+          <!-- COR-03 D1: la alerta va debajo de Contraseña y encima de Ingresar, como en el mockup (págs. 52–53). -->
+          <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" class="login-alert" />
           <el-button type="primary" native-type="submit" :loading="loading">Ingresar</el-button>
         </el-form>
         <p class="password-recovery">
@@ -83,6 +78,10 @@ async function submit() {
 </template>
 
 <style scoped>
+.login-alert {
+  margin-bottom: 18px;
+}
+
 /* R1.2: el texto del mockup pasa a ser el enlace a Recuperar contraseña, con el mismo aspecto. */
 .recovery-link {
   color: inherit;

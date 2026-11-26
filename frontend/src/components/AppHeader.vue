@@ -63,7 +63,7 @@ async function handleProfileCommand(command) {
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <span v-else class="profile-pill">Acceso veterinario</span>
+      <!-- COR-03 D4: sin sesión no hay nombre que mostrar; el recuadro del perfil aparece al iniciar sesión. -->
     </div>
 
     <nav class="app-navigation" aria-label="Navegación principal">
